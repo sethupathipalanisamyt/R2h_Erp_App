@@ -1,7 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using R2h_Erp_App.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<R2hErpDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Defalut"));
+});
 
 var app = builder.Build();
 

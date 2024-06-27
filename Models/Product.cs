@@ -15,7 +15,7 @@ public partial class Product
 
     public DateTime CreatedOn { get; set; }
 
-    public DateTime UpdateedOn { get; set; }
+    public DateTime? UpdateedOn { get; set; }
 
     public bool Isdeleted { get; set; }
 
