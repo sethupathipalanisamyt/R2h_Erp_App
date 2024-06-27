@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace R2h_Erp_App.Models;
 
 public partial class Product
 {
+    [Key]
     public int ProductsId { get; set; }
-
+    [Required]
     public string Name { get; set; } = null!;
-
+    [MaxLength(10)]
     public string Code { get; set; } = null!;
 
     public bool IsActive { get; set; }

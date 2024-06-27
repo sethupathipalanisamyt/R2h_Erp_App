@@ -1,0 +1,90 @@
+﻿@model IEnumerable<R2h_Erp_App.Models.Product>
+
+@{
+    ViewData["Title"] = "Index";
+}
+<div class="d-flex justify-content-between">
+    <h2 class="mb-4">Customer Details</h2>
+
+    <a asp-controller="Products" asp-action="Create" class="btn btn-primary h-50"><i class="fa-solid fa-plus"></i>  Create Product</a>
+
+</div>
+<div class="card">
+
+    <div class="card-body">
+        <div class="table-responsive">
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Code)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsActive)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedOn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UpdateedOn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Isdeleted)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+             <a asp-controller="Products" asp-action="Edit" asp-route-id="@item.ProductsId" method="get" class="btn btn-outline-primary"><i class="fa-solid fa-pen-to-square"></i></a>
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Code)
+            </td>
+             <td>
+                @if (item.IsActive)
+                 {
+                   <button class="btn btn-sm btn-success w-100 my-auto">Active</button>
+                 }
+                else
+                 {
+                   <button class="btn btn-sm btn-danger w-100 my-auto">InActive</button>
+                 }
+
+
+             </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedOn)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UpdateedOn)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Isdeleted)
+            </td>
+            <td>
+                @* <a asp-action="Edit" asp-route-id="@item.ProductsId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.ProductsId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.ProductsId">Delete</a> *@
+
+                                <a asp-controller="Products" asp-action="Delete" asp-route-id="@item.ProductsId" method="get" class="btn btn-outline-primary mr-2"><i class="fa-solid fa-trash-can"></i></a>&nbsp;
+                                <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductsId" method="get" class="btn btn-outline-primary ml-2"><i class="fa-solid fa-circle-info"></i></a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+        </div>
+    </div>
+</div>

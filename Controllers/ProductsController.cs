@@ -9,22 +9,22 @@ using R2h_Erp_App.Models;
 
 namespace R2h_Erp_App.Controllers
 {
-    public class CustomersController : Controller
+    public class ProductsController : Controller
     {
         private readonly R2hErpDbContext _context;
 
-        public CustomersController(R2hErpDbContext context)
+        public ProductsController(R2hErpDbContext context)
         {
             _context = context;
         }
 
-        // GET: Customers
+        // GET: Products
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Customers.ToListAsync());
+            return View(await _context.Products.ToListAsync());
         }
 
-        // GET: Customers/Details/5
+        // GET: Products/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -32,39 +32,39 @@ namespace R2h_Erp_App.Controllers
                 return NotFound();
             }
 
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(m => m.CustomersId == id);
-            if (customer == null)
+            var product = await _context.Products
+                .FirstOrDefaultAsync(m => m.ProductsId == id);
+            if (product == null)
             {
                 return NotFound();
             }
 
-            return View(customer);
+            return View(product);
         }
 
-        // GET: Customers/Create
-        public IActionResult Register()
+        // GET: Products/Create
+        public IActionResult Create()
         {
             return View("Create");
         }
 
-        // POST: Customers/Create
+        // POST: Products/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CustomersId,Name,Email,Phone,IsActive,CreatedOn,UpdateedOn,Isdeleted")] Customer customer)
+        public async Task<IActionResult> Create([Bind("ProductsId,Name,Code,IsActive,CreatedOn,UpdateedOn,Isdeleted")] Product product)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(customer);
+                _context.Add(product);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(customer);
+            return View(product);
         }
-        [HttpGet]
-        // GET: Customers/Edit/5
+
+        // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -72,22 +72,22 @@ namespace R2h_Erp_App.Controllers
                 return NotFound();
             }
 
-            var customer = await _context.Customers.FindAsync(id);
-            if (customer == null)
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
             {
                 return NotFound();
             }
-            return View(customer);
+            return View(product);
         }
 
-        // POST: Customers/Edit/5
+        // POST: Products/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CustomersId,Name,Email,Phone,IsActive,CreatedOn,UpdateedOn,Isdeleted")] Customer customer)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductsId,Name,Code,IsActive,CreatedOn,UpdateedOn,Isdeleted")] Product product)
         {
-            if (id != customer.CustomersId)
+            if (id != product.ProductsId)
             {
                 return NotFound();
             }
@@ -96,13 +96,12 @@ namespace R2h_Erp_App.Controllers
             {
                 try
                 {
-                    customer.UpdateedOn= DateTime.Now;
-                    _context.Update(customer);
+                    _context.Update(product);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CustomerExists(customer.CustomersId))
+                    if (!ProductExists(product.ProductsId))
                     {
                         return NotFound();
                     }
@@ -113,10 +112,10 @@ namespace R2h_Erp_App.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(customer);
+            return View(product);
         }
 
-        // GET: Customers/Delete/5
+        // GET: Products/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -124,35 +123,36 @@ namespace R2h_Erp_App.Controllers
                 return NotFound();
             }
 
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(m => m.CustomersId == id);
-            if (customer == null)
+            var product = await _context.Products
+                .FirstOrDefaultAsync(m => m.ProductsId == id);
+            if (product == null)
             {
                 return NotFound();
             }
 
-            return View(customer);
+            return View(product);
         }
 
-        // POST: Customers/Delete/5
+        // POST: Products/Delete/5
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Remove(Customer id)
+        public async Task<IActionResult> Remove(Product id)
         {
-            var customer = await _context.Customers.FindAsync(id.CustomersId);
-            if (customer != null)
+            var product = await _context.Products.FindAsync(id.ProductsId);
+            if (product != null)
             {
-                id.Isdeleted = true;
+                id.Isdeleted = true;   
                 _context.SaveChanges();
-                _context.Customers.Remove(customer);
+                _context.Remove(product);
+               
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CustomerExists(int id)
+        private bool ProductExists(int id)
         {
-            return _context.Customers.Any(e => e.CustomersId == id);
+            return _context.Products.Any(e => e.ProductsId == id);
         }
     }
 }
