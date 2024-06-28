@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using R2h_Erp_App.Models;
+using R2h_Erp_App.DbModels;
 
 var builder = WebApplication.CreateBuilder(args);
 

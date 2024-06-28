@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using R2h_Erp_App.DbModels;
 using R2h_Erp_App.Models;
 
 namespace R2h_Erp_App.Controllers
@@ -21,7 +22,7 @@ namespace R2h_Erp_App.Controllers
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Products.ToListAsync());
+            return View(await _context.Products.Where(x => !x.Isdeleted).ToListAsync());
         }
 
         // GET: Products/Details/5
@@ -31,7 +32,7 @@ namespace R2h_Erp_App.Controllers
             {
                 return NotFound();
             }
-
+                
             var product = await _context.Products
                 .FirstOrDefaultAsync(m => m.ProductsId == id);
             if (product == null)
@@ -53,20 +54,28 @@ namespace R2h_Erp_App.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProductsId,Name,Code,IsActive,CreatedOn,UpdateedOn,Isdeleted")] Product product)
+        public async Task<IActionResult> Create([Bind("Name,Code,IsActive")] ProductVM productVM)
         {
             if (ModelState.IsValid)
             {
+                Product product =new Product();
+                product.Name = productVM.Name;
+                product.Code=productVM.Code;
+                product.IsActive = true;
+                product.CreatedOn = DateTime.Now;
+                product.UpdateedOn = null;
+                product.Isdeleted=false;
                 _context.Add(product);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(productVM);
         }
 
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            ProductVM productVM=new ProductVM();
             if (id == null)
             {
                 return NotFound();
@@ -77,7 +86,12 @@ namespace R2h_Erp_App.Controllers
             {
                 return NotFound();
             }
-            return View(product);
+            productVM.Name = product.Name;
+            productVM.Code= product.Code;
+            productVM.IsActive = product.IsActive;
+            productVM.ProductsId= product.ProductsId;
+
+            return View(productVM);
         }
 
         // POST: Products/Edit/5
@@ -85,34 +99,23 @@ namespace R2h_Erp_App.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductsId,Name,Code,IsActive,CreatedOn,UpdateedOn,Isdeleted")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductsId,Name,Code,IsActive")] ProductVM productVM)
         {
-            if (id != product.ProductsId)
-            {
-                return NotFound();
-            }
-
+            
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(product);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProductExists(product.ProductsId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                Product product = _context.Products.Find(id)!;
+                product.Name=productVM.Name;
+                product.Code=productVM.Code;
+                product.IsActive = productVM.IsActive;
+                product.UpdateedOn= DateTime.Now;
+                _context.Update(product);
+                await  _context.SaveChangesAsync();
+                
+               
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(productVM);
         }
 
         // GET: Products/Delete/5
@@ -140,13 +143,15 @@ namespace R2h_Erp_App.Controllers
             var product = await _context.Products.FindAsync(id.ProductsId);
             if (product != null)
             {
-                id.Isdeleted = true;   
+                id.Isdeleted = true;  
+                _context.Products.Update(product);
                 _context.SaveChanges();
-                _context.Remove(product);
+                
                
             }
 
-            await _context.SaveChangesAsync();
+            _context.Remove(product);
+           
             return RedirectToAction(nameof(Index));
         }
 

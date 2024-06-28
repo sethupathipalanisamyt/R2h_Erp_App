@@ -1,4 +1,4 @@
-﻿@model R2h_Erp_App.Models.Product
+﻿@model R2h_Erp_App.Models.ProductVM
 
 @{
     ViewData["Title"] = "Create";
@@ -22,26 +22,7 @@
                 <input asp-for="Code" class="form-control" />
                 <span asp-validation-for="Code" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
-                </label>
-            </div>
-            <div class="form-group">
-               @*  <label asp-for="CreatedOn" class="control-label"></label> *@
-                <input type="datetime" type="hidden" asp-for="CreatedOn" value="@DateTime.UtcNow" class="form-control" />
-                
-            </div>
-           @*  <div class="form-group">
-                <label asp-for="UpdateedOn" class="control-label"></label>
-                <input asp-for="UpdateedOn" class="form-control" />
-                <span asp-validation-for="UpdateedOn" class="text-danger"></span>
-            </div> *@
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Isdeleted" /> @Html.DisplayNameFor(model => model.Isdeleted)
-                </label>
-            </div>
+           
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>

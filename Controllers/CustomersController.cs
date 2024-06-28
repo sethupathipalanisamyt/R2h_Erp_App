@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using R2h_Erp_App.DbModels;
 using R2h_Erp_App.Models;
 
 namespace R2h_Erp_App.Controllers
@@ -21,7 +22,8 @@ namespace R2h_Erp_App.Controllers
         // GET: Customers
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Customers.ToListAsync());
+            
+            return View(await _context.Customers.Where(x => !x.Isdeleted).ToListAsync());
         }
 
         // GET: Customers/Details/5
@@ -53,20 +55,29 @@ namespace R2h_Erp_App.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CustomersId,Name,Email,Phone,IsActive,CreatedOn,UpdateedOn,Isdeleted")] Customer customer)
+        public async Task<IActionResult> Create([Bind("Name,Email,Phone,IsActive")] CustomerVM customerVM)
         {
             if (ModelState.IsValid)
             {
+                Customer customer = new Customer();
+                customer.Name= customerVM.Name;
+                customer.Email=customerVM.Email;
+                customer.Phone = customerVM.Phone;
+                customer.IsActive = true;
+                customer.CreatedOn=DateTime.Now;
+                customer.UpdateedOn = null;
+                customer.Isdeleted = false;
                 _context.Add(customer);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(customer);
+            return View(customerVM);
         }
         [HttpGet]
         // GET: Customers/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            CustomerVM customervm = new CustomerVM();
             if (id == null)
             {
                 return NotFound();
@@ -77,7 +88,12 @@ namespace R2h_Erp_App.Controllers
             {
                 return NotFound();
             }
-            return View(customer);
+            customervm.Name = customer.Name;
+            customervm.Email = customer.Email;
+            customervm.Phone = customer.Phone;
+            customervm.IsActive = customer.IsActive;
+            customervm.CustomersId= customer.CustomersId;
+            return View(customervm);
         }
 
         // POST: Customers/Edit/5
@@ -85,35 +101,26 @@ namespace R2h_Erp_App.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CustomersId,Name,Email,Phone,IsActive,CreatedOn,UpdateedOn,Isdeleted")] Customer customer)
+        public async Task<IActionResult> Edit(int id, [Bind("CustomersId,Name,Email,Phone,IsActive")] CustomerVM customerVM)
         {
-            if (id != customer.CustomersId)
-            {
-                return NotFound();
-            }
+            
 
             if (ModelState.IsValid)
             {
-                try
-                {
+                Customer customer = _context.Customers.Find(customerVM.CustomersId)!;
+                
+                
+                    customer.Name = customerVM.Name;
+                    customer.Email = customerVM.Email;
+                    customer.Phone = customerVM.Phone;
+                    customer.IsActive = customerVM.IsActive;
                     customer.UpdateedOn= DateTime.Now;
-                    _context.Update(customer);
+                    _context.Customers.Update(customer);
                     await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CustomerExists(customer.CustomersId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                
                 return RedirectToAction(nameof(Index));
             }
-            return View(customer);
+            return View(customerVM);
         }
 
         // GET: Customers/Delete/5
@@ -141,12 +148,13 @@ namespace R2h_Erp_App.Controllers
             var customer = await _context.Customers.FindAsync(id.CustomersId);
             if (customer != null)
             {
-                id.Isdeleted = true;
+                customer.Isdeleted = true;
+                _context.Customers.Update(customer);
                 _context.SaveChanges();
-                _context.Customers.Remove(customer);
+               
             }
 
-            await _context.SaveChangesAsync();
+            _context.Remove(customer);    
             return RedirectToAction(nameof(Index));
         }
 

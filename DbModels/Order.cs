@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace R2h_Erp_App.Models;
+namespace R2h_Erp_App.DbModels;
 
 public partial class Order
 {

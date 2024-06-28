@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
-namespace R2h_Erp_App.Models;
+namespace R2h_Erp_App.DbModels;
 
-public partial class Customer
+public partial class Product
 {
-    [Key]
-    public int CustomersId { get; set; }
-    [Required]
+    public int ProductsId { get; set; }
+
     public string Name { get; set; } = null!;
-    [EmailAddress]
-    public string Email { get; set; } = null!;
-    [MaxLength(10)]
-    public string Phone { get; set; } = null!;
+
+    public string Code { get; set; } = null!;
 
     public bool IsActive { get; set; }
 

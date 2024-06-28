@@ -1,4 +1,4 @@
-﻿@model IEnumerable<R2h_Erp_App.Models.Customer>
+﻿@model IEnumerable<R2h_Erp_App.DbModels.Customer>
 
 @{
     ViewData["Title"] = "Index";
@@ -38,9 +38,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.UpdateedOn)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Isdeleted)
-            </th>
+          
             <th></th>
         </tr>
     </thead>
@@ -78,9 +76,7 @@
             <td>
                 @Html.DisplayFor(modelItem => item.UpdateedOn)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Isdeleted)
-            </td>
+          
             <td class="d-flex px-2">
               @*   <a asp-action="Edit" asp-route-id="@item.CustomersId">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.CustomersId">Details</a> |
