@@ -26,8 +26,8 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="OrderId" />
             <div class="form-group">
-                <label asp-for="CustomersId" class="control-label"></label>
-                <select asp-for="CustomersId" class="form-group" id="CustomerId" >
+                <label asp-for="CustomersId" class="control-label">CustomerName</label>
+                <select asp-for="CustomersId" class="form-group" id="CustomerId" disabled>
                     <option value="">Select</option>
                     @foreach (var category in ViewBag.CustomersId.Items)
                     {
@@ -36,8 +36,8 @@
                 </select>
             </div>
             <div class="form-group">
-                <label asp-for="ProductId" class="control-label"></label>
-                <select asp-for="ProductId" class="form-control" id="ProductId">
+                <label asp-for="ProductId" class="control-label">ProductName</label>
+                <select asp-for="ProductId" class="form-control" id="ProductId" disabled>
                     <option value="">select</option>
                     @foreach (var category in ViewBag.ProductId.Items)
                     {
@@ -61,6 +61,11 @@
                 <label asp-for="TotalAmount" class="control-label"></label>
                 <input asp-for="TotalAmount" class="form-control"  readonly/>
                 <span asp-validation-for="TotalAmount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="OrderDate" class="control-label"></label>
+                <input type="datetime" asp-for="OrderDate" class="form-control" readonly />
+                <span asp-validation-for="OrderDate" class="text-danger"></span>
             </div>
           
           
