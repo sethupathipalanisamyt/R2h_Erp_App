@@ -8,17 +8,28 @@
 
 <h4>Order</h4>
 <hr />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#Quantity, #Amount').on('input', function () {
+            var quantity = parseFloat($('#Quantity').val()) || 0;
+            var amount = parseFloat($('#Amount').val()) || 0;
+            var totalAmount = quantity * amount;
+            $('#TotalAmount').val(totalAmount);
+        });
+    });
+</script>
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="CustomersId" class="control-label"></label>
+                <label @Html.DisplayName("CustomersName") class="control-label"></label>
                 <select asp-for="CustomersId" class="form-group" id="CustomerId">
                    <option value="">Select</option>
                     @foreach (var category in ViewBag.CustomersId.Items)
                     {
-                        <option value="@category.Name">@category.CustomersId</option>
+                        <option value="@category.CustomersId">@category.Name</option>
                     }
                 </select>
             </div>
@@ -28,15 +39,11 @@
                     <option value="">select</option>
                     @foreach (var category in ViewBag.ProductId.Items)
                     {
-                        <option value="@category.Name">@category.ProductsId</option>
+                        <option value="@category.ProductsId">@category.Name</option>
                     }
                 </select>
             </div>
-            <div class="form-group">
-                <label asp-for="OrderDate" class="control-label"></label>
-                <input asp-for="OrderDate" class="form-control" />
-                <span asp-validation-for="OrderDate" class="text-danger"></span>
-            </div>
+           
             <div class="form-group">
                 <label asp-for="Quantity" class="control-label"></label>
                 <input asp-for="Quantity" class="form-control" />
@@ -46,6 +53,16 @@
                 <label asp-for="Amount" class="control-label"></label>
                 <input asp-for="Amount" class="form-control" />
                 <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TotalAmount" class="control-label"></label>
+                <input asp-for="TotalAmount"  class="form-control" />
+                <span asp-validation-for="TotalAmount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="OrderDate" class="control-label"></label>
+                <input asp-for="OrderDate" type="datetime" value="@DateTime.Now" class="form-control" />
+               
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />

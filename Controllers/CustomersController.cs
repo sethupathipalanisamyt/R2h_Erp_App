@@ -23,7 +23,7 @@ namespace R2h_Erp_App.Controllers
         public async Task<IActionResult> Index()
         {
             
-            return View(await _context.Customers.Where(x => !x.Isdeleted).ToListAsync());
+            return View(await _context.Customers.Where(x => !x.Isdeleted).Where(x => x.IsActive).ToListAsync());
         }
 
         // GET: Customers/Details/5

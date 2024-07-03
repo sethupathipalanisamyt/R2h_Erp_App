@@ -23,6 +23,8 @@ public partial class Order
 
     public bool Isdeleted { get; set; }
 
+    public decimal TotalAmount { get; set; }
+
     public virtual Customer Customers { get; set; } = null!;
 
     public virtual Product Product { get; set; } = null!;

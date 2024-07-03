@@ -22,7 +22,7 @@ namespace R2h_Erp_App.Controllers
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Products.Where(x => !x.Isdeleted).ToListAsync());
+            return View(await _context.Products.Where(x => !x.Isdeleted).Where(x=>x.IsActive).ToListAsync());
         }
 
         // GET: Products/Details/5
@@ -150,8 +150,7 @@ namespace R2h_Erp_App.Controllers
                
             }
 
-            _context.Remove(product);
-           
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

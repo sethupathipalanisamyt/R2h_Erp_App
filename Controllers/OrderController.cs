@@ -22,8 +22,9 @@ namespace R2h_Erp_App.Controllers
         // GET: Order
         public async Task<IActionResult> Index()
         {
-            var r2hErpDbContext = _context.Orders.Include(o => o.Customers).Include(o => o.Product);
-            return View(await r2hErpDbContext.ToListAsync());
+           
+            return View( await _context.Orders.Where(x => !x.Isdeleted).Include(o => o.Customers).Include(o => o.Product).ToListAsync());
+            
         }
 
         // GET: Order/Details/5
@@ -65,19 +66,21 @@ namespace R2h_Erp_App.Controllers
         {
             Order order = new Order();
 
-            if (ModelState.IsValid)
+            if (orderVM !=null)
             {
                 
                 order.CustomersId= orderVM.CustomersId;
                 order.ProductId= orderVM.ProductId;
-                order.OrderDate = orderVM.OrderDate;
                 order.Quantity = orderVM.Quantity;
                 order.Amount = orderVM.Amount;
+                var totalamont= order.Amount * order.Quantity;
+                order.TotalAmount = totalamont;
+                order.OrderDate = orderVM.OrderDate;
                 order.CreatedOn=DateTime.Now;
                 order.UpdateedOn = null;
                 order.Isdeleted = false;
                 _context.Add(order);
-                await _context.SaveChangesAsync();
+                 _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CustomersId"] = new SelectList(_context.Customers, "CustomersId", "CustomersId", order.CustomersId);
@@ -108,36 +111,30 @@ namespace R2h_Erp_App.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("OrderId,CustomersId,ProductId,OrderDate,Quantity,Amount,CreatedOn,UpdateedOn,Isdeleted")] Order order)
+        public async Task<IActionResult> Edit(int id, [Bind("Quantity,Amount,TotalAmound")] OrderVM orderVM)
         {
-            if (id != order.OrderId)
-            {
-                return NotFound();
-            }
-
+            
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(order);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!OrderExists(order.OrderId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+
+                Order order = _context.Orders.Find(id);
+                order.Quantity=orderVM.Quantity;
+                order.Amount=orderVM.Amount;
+                var totalamont = order.Amount * order.Quantity;
+                order.TotalAmount = totalamont;
+                order.UpdateedOn = DateTime.Now;
+
+
+
+                _context.Update(order);
+                await _context.SaveChangesAsync();
+                
+               
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CustomersId"] = new SelectList(_context.Customers, "CustomersId", "CustomersId", order.CustomersId);
-            ViewData["ProductId"] = new SelectList(_context.Products, "ProductsId", "ProductsId", order.ProductId);
-            return View(order);
+            ViewData["CustomersId"] = new SelectList(_context.Customers, "CustomersId", "CustomersId", orderVM.CustomersId);
+            ViewData["ProductId"] = new SelectList(_context.Products, "ProductsId", "ProductsId", orderVM.ProductId);
+            return View(orderVM);
         }
 
         // GET: Order/Delete/5
@@ -161,16 +158,19 @@ namespace R2h_Erp_App.Controllers
         }
 
         // POST: Order/Delete/5
-        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [HttpPost]
+        public async Task<IActionResult> Remove(Order id)
         {
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Orders.FindAsync(id.OrderId);
             if (order != null)
             {
-                _context.Orders.Remove(order);
+                order.Isdeleted = true;
+                _context.Orders.Update(order);
+                _context.SaveChanges();
+               
             }
-
+            
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

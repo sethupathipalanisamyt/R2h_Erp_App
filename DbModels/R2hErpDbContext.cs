@@ -21,9 +21,9 @@ public partial class R2hErpDbContext : DbContext
 
     public virtual DbSet<Product> Products { get; set; }
 
-//   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Data Source=DESKTOP-D90893D\\SQLEXPRESS;Initial Catalog=R2h_Erp_Db;User ID=sa;Password=sethu903;encrypt=false");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Data Source=DESKTOP-D90893D\\SQLEXPRESS;Initial Catalog=R2h_Erp_Db;User ID=sa;Password=sethu903;Encrypt=False;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,7 +46,7 @@ public partial class R2hErpDbContext : DbContext
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.OrderDate).HasColumnType("datetime");
-            entity.Property(e => e.UpdateedOn).HasColumnType("datetime");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
 
             entity.HasOne(d => d.Customers).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.CustomersId)
