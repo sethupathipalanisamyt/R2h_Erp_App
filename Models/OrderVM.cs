@@ -12,7 +12,7 @@ namespace R2h_Erp_App.Models
         [Required]
         [ForeignKey("Products")]
         public int ProductId { get; set; }
-
+        [DataType(DataType.Date)]
         public DateTime OrderDate { get; set; }
         [Required]
         public int Quantity { get; set; }

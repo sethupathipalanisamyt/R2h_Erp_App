@@ -23,7 +23,7 @@ namespace R2h_Erp_App.Controllers
         public async Task<IActionResult> Index()
         {
             
-            return View(await _context.Customers.Where(x => !x.Isdeleted).Where(x => x.IsActive).ToListAsync());
+            return View(await _context.Customers.Where(x => !x.Isdeleted).ToListAsync());
         }
 
         // GET: Customers/Details/5
@@ -47,6 +47,8 @@ namespace R2h_Erp_App.Controllers
         // GET: Customers/Create
         public IActionResult Register()
         {
+          //  Order order = new Order();
+          //var orderdate=  order.OrderDate = DateTime.Now;
             return View("Create");
         }
 
@@ -145,16 +147,20 @@ namespace R2h_Erp_App.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Remove(Customer id)
         {
-            var customer = await _context.Customers.FindAsync(id.CustomersId);
-            if (customer != null)
+            bool CustomerExists = _context.Orders.Any(x => x.CustomersId == id.CustomersId);
+            if (CustomerExists == true)
             {
+                return View("Error");
+            }
+            else
+            {            
+            var customer = await _context.Customers.FindAsync(id.CustomersId);
                 customer.Isdeleted = true;
                 _context.Customers.Update(customer);
                 _context.SaveChanges();
-               
+                _context.Remove(customer);
             }
-
-            _context.Remove(customer);    
+                
             return RedirectToAction(nameof(Index));
         }
 

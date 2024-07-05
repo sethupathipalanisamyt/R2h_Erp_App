@@ -50,8 +50,8 @@ namespace R2h_Erp_App.Controllers
         // GET: Order/Create
         public IActionResult Create()
         {
-            var result=_context.Customers.ToList();
-            var response=_context.Products.ToList();
+            var result=_context.Customers.ToList().Where(x=> !x.IsActive==false).Where(x=>!x.Isdeleted);
+            var response=_context.Products.ToList().Where(x=>!x.IsActive==false).Where(x => !x.Isdeleted);
             ViewBag.CustomersId = new SelectList(result, "CustomersId", "Name");
             ViewBag.ProductId = new SelectList(response, "ProductsId", "Name");
             return View();

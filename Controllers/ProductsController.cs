@@ -22,7 +22,7 @@ namespace R2h_Erp_App.Controllers
         // GET: Products
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Products.Where(x => !x.Isdeleted).Where(x=>x.IsActive).ToListAsync());
+            return View(await _context.Products.Where(x => !x.Isdeleted).ToListAsync());
         }
 
         // GET: Products/Details/5
@@ -138,25 +138,26 @@ namespace R2h_Erp_App.Controllers
 
         // POST: Products/Delete/5
         [ValidateAntiForgeryToken]
+        [HttpPost]
         public async Task<IActionResult> Remove(Product id)
         {
-            var product = await _context.Products.FindAsync(id.ProductsId);
-            if (product != null)
+            bool productExists = _context.Orders.Any(x => x.ProductId == id.ProductsId);
+            if (productExists == true)
             {
-                id.Isdeleted = true;  
+                return View("Error");
+            }
+            else
+            {
+            var product = await _context.Products.FindAsync(id.ProductsId);           
+                product.Isdeleted = true;  
                 _context.Products.Update(product);
                 _context.SaveChanges();
-                
-               
+           
             }
-
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductExists(int id)
-        {
-            return _context.Products.Any(e => e.ProductsId == id);
-        }
+       
     }
 }

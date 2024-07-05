@@ -15,6 +15,11 @@ namespace R2h_Erp_App.Models
 
         public bool IsActive { get; set; }
 
-       
+        public DateTime CreatedOn { get; set; }
+
+        //public DateTime? UpdateedOn { get; set; }
+
+
+
     }
 }
