@@ -1,0 +1,83 @@
+﻿@model IEnumerable<R2h_Erp_App.DbModels.OrderTab>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OrderNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OrderDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SubTotal)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Discount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ShippingFee)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NetAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StatusId)
+            </th>
+            <th>
+                @Html.DisplayName("CustomerName")
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+                <td>
+                    <a asp-controller="OrderTab" asp-action="Edit" asp-route-id="@item.OrderId" method="get" class="btn btn-outline-primary"><i class="fa-solid fa-pen-to-square"></i></a>
+                </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.OrderNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.OrderDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.SubTotal)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Discount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ShippingFee)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.NetAmount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StatusId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer.Name)
+            </td>
+            <td>
+
+                    <a asp-controller="OrderTab" asp-action="Delete" asp-route-id="@item.OrderId" method="get" class="btn btn-outline-primary mr-1"><i class="fa-solid fa-trash-can"></i></a>&nbsp;
+                    <a asp-controller="OrderTab" asp-action="Details" asp-route-id="@item.OrderId" method="get" class="btn btn-outline-primary ml-1"><i class="fa-solid fa-circle-info"></i></a>
+                </td>
+        </tr>
+}
+    </tbody>
+</table>

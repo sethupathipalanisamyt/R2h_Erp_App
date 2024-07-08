@@ -65,6 +65,7 @@ namespace R2h_Erp_App.Controllers
                 product.CreatedOn = DateTime.Now;
                 product.UpdateedOn = null;
                 product.Isdeleted=false;
+                product.UnitPrice= productVM.UnitPrice;
                 _context.Add(product);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -89,6 +90,7 @@ namespace R2h_Erp_App.Controllers
             productVM.Name = product.Name;
             productVM.Code= product.Code;
             productVM.IsActive = product.IsActive;
+            product.UnitPrice=product.UnitPrice;
             productVM.ProductsId= product.ProductsId;
 
             return View(productVM);
@@ -107,6 +109,7 @@ namespace R2h_Erp_App.Controllers
                 Product product = _context.Products.Find(id)!;
                 product.Name=productVM.Name;
                 product.Code=productVM.Code;
+                product.UnitPrice= productVM.UnitPrice;
                 product.IsActive = productVM.IsActive;
                 product.UpdateedOn= DateTime.Now;
                 _context.Update(product);

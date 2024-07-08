@@ -19,10 +19,13 @@ public partial class R2hErpDbContext : DbContext
 
     public virtual DbSet<Order> Orders { get; set; }
 
+    public virtual DbSet<OrderItemTab> OrderItemTabs { get; set; }
+
+    public virtual DbSet<OrderTab> OrderTabs { get; set; }
+
     public virtual DbSet<Product> Products { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Data Source=DESKTOP-D90893D\\SQLEXPRESS;Initial Catalog=R2h_Erp_Db;User ID=sa;Password=sethu903;Encrypt=False;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,6 +50,7 @@ public partial class R2hErpDbContext : DbContext
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.OrderDate).HasColumnType("datetime");
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UpdateedOn).HasColumnType("datetime");
 
             entity.HasOne(d => d.Customers).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.CustomersId)
@@ -59,6 +63,45 @@ public partial class R2hErpDbContext : DbContext
                 .HasConstraintName("FK__Orders__ProductI__3E52440B");
         });
 
+        modelBuilder.Entity<OrderItemTab>(entity =>
+        {
+            entity.HasKey(e => e.OrderItemId).HasName("PK__OrderIte__57ED0681F5DF530B");
+
+            entity.ToTable("OrderItemTab");
+
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.Order).WithMany(p => p.OrderItemTabs)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__OrderItem__Order__6A30C649");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.OrderItemTabs)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__OrderItem__Produ__6B24EA82");
+        });
+
+        modelBuilder.Entity<OrderTab>(entity =>
+        {
+            entity.HasKey(e => e.OrderId).HasName("PK__OrderTab__C3905BCFF02924AD");
+
+            entity.ToTable("OrderTab");
+
+            entity.Property(e => e.Discount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.NetAmount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.OrderDate).HasColumnType("datetime");
+            entity.Property(e => e.OrderNumber).HasMaxLength(50);
+            entity.Property(e => e.ShippingFee).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.SubTotal).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.Customer).WithMany(p => p.OrderTabs)
+                .HasForeignKey(d => d.CustomerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__OrderTab__Custom__619B8048");
+        });
+
         modelBuilder.Entity<Product>(entity =>
         {
             entity.HasKey(e => e.ProductsId).HasName("PK__Products__BB48EDE5247B773C");
@@ -66,6 +109,7 @@ public partial class R2hErpDbContext : DbContext
             entity.Property(e => e.Code).HasMaxLength(10);
             entity.Property(e => e.CreatedOn).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(50);
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdateedOn).HasColumnType("datetime");
         });
 

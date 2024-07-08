@@ -19,5 +19,9 @@ public partial class Product
 
     public bool Isdeleted { get; set; }
 
+    public decimal? UnitPrice { get; set; }
+
+    public virtual ICollection<OrderItemTab> OrderItemTabs { get; set; } = new List<OrderItemTab>();
+
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 }

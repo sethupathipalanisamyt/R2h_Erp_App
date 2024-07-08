@@ -10,7 +10,9 @@ namespace R2h_Erp_App.Models
         public string Code { get; set; } = null!;
 
         public bool IsActive { get; set; }
+        [Required]
+        public decimal UnitPrice { get; set; }
 
-       
+
     }
 }

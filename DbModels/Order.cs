@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace R2h_Erp_App.DbModels;
 
@@ -11,7 +10,7 @@ public partial class Order
     public int CustomersId { get; set; }
 
     public int ProductId { get; set; }
-    [DataType(DataType.Date)]
+
     public DateTime OrderDate { get; set; }
 
     public int Quantity { get; set; }

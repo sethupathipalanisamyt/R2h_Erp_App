@@ -21,5 +21,7 @@ public partial class Customer
 
     public bool Isdeleted { get; set; }
 
+    public virtual ICollection<OrderTab> OrderTabs { get; set; } = new List<OrderTab>();
+
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 }
