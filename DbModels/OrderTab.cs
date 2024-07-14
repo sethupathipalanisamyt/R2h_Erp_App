@@ -21,9 +21,11 @@ public partial class OrderTab
 
     public decimal? NetAmount { get; set; }
 
-    public int StatusId { get; set; }
+    public int? StatusId { get; set; }
 
     public virtual Customer Customer { get; set; } = null!;
 
     public virtual ICollection<OrderItemTab> OrderItemTabs { get; set; } = new List<OrderItemTab>();
+
+    public virtual StatusTab? Status { get; set; }
 }

@@ -1,9 +1,8 @@
 ﻿namespace R2h_Erp_App.Models
 {
-    public class OrderTabVM
+    public class OrdertabVM
     {
-        public int OrderId { get; set; }
-
+        
         public string? OrderNumber { get; set; }
 
         public int CustomerId { get; set; }
@@ -18,6 +17,17 @@
 
         public decimal? NetAmount { get; set; }
 
-        public int StatusId { get; set; }
+        public int? StatusId { get; set; }
+        public int OrderItemId { get; set; }
+
+        public int OrderId { get; set; }
+
+        public int ProductId { get; set; }
+
+        public int Quantity { get; set; }
+
+        public decimal UnitPrice { get; set; }
+
+        public decimal TotalAmount { get; set; }
     }
 }

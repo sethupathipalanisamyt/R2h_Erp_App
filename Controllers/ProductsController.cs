@@ -101,7 +101,7 @@ namespace R2h_Erp_App.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductsId,Name,Code,IsActive")] ProductVM productVM)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductsId,Name,Code,IsActive,UnitPrice")] ProductVM productVM)
         {
             
             if (ModelState.IsValid)

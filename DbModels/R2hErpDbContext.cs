@@ -25,6 +25,8 @@ public partial class R2hErpDbContext : DbContext
 
     public virtual DbSet<Product> Products { get; set; }
 
+    public virtual DbSet<StatusTab> StatusTabs { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Data Source=DESKTOP-D90893D\\SQLEXPRESS;Initial Catalog=R2h_Erp_Db;User ID=sa;Password=sethu903;Encrypt=False;");
 
@@ -100,6 +102,10 @@ public partial class R2hErpDbContext : DbContext
                 .HasForeignKey(d => d.CustomerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__OrderTab__Custom__619B8048");
+
+            entity.HasOne(d => d.Status).WithMany(p => p.OrderTabs)
+                .HasForeignKey(d => d.StatusId)
+                .HasConstraintName("FK__OrderTab__Status__6EF57B66");
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -111,6 +117,15 @@ public partial class R2hErpDbContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdateedOn).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<StatusTab>(entity =>
+        {
+            entity.HasKey(e => e.StatusId).HasName("PK__StatusTa__C8EE2063853716D2");
+
+            entity.ToTable("StatusTab");
+
+            entity.Property(e => e.StatusName).HasMaxLength(50);
         });
 
         OnModelCreatingPartial(modelBuilder);
