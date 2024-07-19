@@ -2,53 +2,16 @@
 
 @{
     ViewData["Title"] = "Create";
+
 }
+<a asp-controller="OrderTab" asp-action="List" id="ShowallTag" class="btn btn-success">Showall</a>
 
 <html lang="en">
 <head>
+    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('#Quantity, #UnitPrice').on('input', function () {
-                var quantity = parseFloat($('#Quantity').val()) || 0;
-                var unitprice = parseFloat($('#UnitPrice').val()) || 0;
-                var totalAmount = quantity * unitprice;
-                $('#TotalPrice').val(totalAmount);
-            });
-        });
-        $(document).ready(function () {
-            $('#SubTotal, #Discount, #ShippingFee').on('input', function () {
-                var subtotal = parseFloat($('#SubTotal').val()) || 0;
-                var discount = parseFloat($('#Discount').val()) || 0;
-                var shippingfee = parseFloat($('#ShippingFee').val()) || 0;
-                var totalAmount = subtotal - discount + shippingfee;
-                $('#NetTotal').val(totalAmount);
-            });
+  
 
-            $('#ProductId').change(function () {
-                getProductByUnitPrice()
-            });
-            var getProductByUnitPrice = function () {
-                var selectedValue = $("#ProductId").val();
-                $.ajax({
-                    url: '@Url.Action("getProductByUnitPrice", "OrderTab")',
-                    type: 'GET',
-                    data: {
-                        ProductId: selectedValue,
-                    },
-                    success:function(data) {
-                        
-                        $('#UnitPrice').val(data[0].unitPrice)
-
-                    }
-                });
-            }
-
-        });
-
-        
-    </script>
-   
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -57,160 +20,281 @@
             font-family: Arial, sans-serif;
             margin: 30px;
         }
-        .table{
-            border-style: groove;
 
+        .table {
+            border-style: groove;
         }
-      
-    
-        .container,.package{
+
+        #ShowallTag {
+            display: flex;
+            justify-content:center;
+        }
+
+        .container, .package {
             display: flex;
             justify-content: space-evenly;
-
         }
-       
 
-        .calculation{
-            display:inline-block;
-            align-items:right;
+
+        .calculation {
+            display: inline-block;
+            align-items: right;
             float: inline-end;
         }
-        .form-size{
-            display:flex;
+
+        .form-size {
+            display: flex;
             flex-direction: row;
-           
         }
-        .form-adjust{
+
+        .form-adjust {
             justify-content: space-between;
             display: block;
         }
-         .container.form-group,.package.form-group{
-                display: inline-block;
-                align-items: center;
-                justify-items: space-between;
-            }
 
+        .container.form-group, .package.form-group {
+            display: inline-block;
+            align-items: center;
+            justify-items: space-between;
+        }
     </style>
 
 </head>
 <body>
-    <h5><b>Purchase Order</b></h5>
-    <br />
-    <div class="container">
-         <div class="form-group">
-            <label asp-for="OrderNumber" class="control-label"></label>
-            <input asp-for="OrderNumber" class="form-control" />
-            <span asp-validation-for="OrderNumber" class="text-danger"></span>
+    <form asp-action="Create" method="post">
+        <h5><b>Purchase Order</b></h5>
+        <br />
+        <div class="container">
+
+            <div class="form-group">
+                <label asp-for="OrderNumber" class="control-label"></label>
+                <input asp-for="OrderNumber" class="form-control" />
+                <span asp-validation-for="OrderNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Customer</label><span class="mandatory"></span>
+                @Html.DropDownList("CustomerId", (IEnumerable<SelectListItem>)ViewBag.CustomersId, "--Select--", new { @class = "form-select", required = "required" })
+                <span asp-validation-for="CustomerId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="OrderDate" class="control-label"></label>
+                <input asp-for="OrderDate" id="orderDate" value="@DateTime.Now" class="form-control" />
+                <span asp-validation-for="OrderDate" class="text-danger"></span>
+            </div>
         </div>
-        <div class="form-group">
-            <label class="control-label">Customer</label><span class="mandatory"></span>
-            @Html.DropDownList("CustomerId", (IEnumerable<SelectListItem>)ViewBag.CustomersId, "--Select--", new { @class = "form-select", required = "required" })
-            <span asp-validation-for="CustomerId" class="text-danger"></span>
+        <br />
+        <h5><b>Order Items</b></h5>
+        <br />
+
+        <div class="package">
+            <div class="form-group">
+                <label class="control-label">Products</label><span class="mandatory"></span>
+                @Html.DropDownList("ProductId", (IEnumerable<SelectListItem>)ViewBag.ProductId, "--Select--", new { @id = "ProductId", @class = "form-select", required = "required" })
+                <span asp-validation-for="ProductId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Quantity" class="control-label"></label>
+                <input asp-for="Quantity" id="Quantity" class="form-control" />
+                <span asp-validation-for="Quantity" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UnitPrice" class="control-label"></label>
+                <input asp-for="UnitPrice" id="UnitPrice" class="form-control" readonly />
+                <span asp-validation-for="UnitPrice" class="text-danger"></span>
+            </div>
+            <div class="form-button"><br />
+                <button id="addItemButton" class="btn btn-primary h-60"><i class="fa-solid fa-plus"></i>Add Item</button>
+            </div>
         </div>
-        <div class="form-group">
-            <label asp-for="OrderDate" class="control-label"></label>
-            <input asp-for="OrderDate" value="@DateTime.Now"class="form-control" />
-            <span asp-validation-for="OrderDate" class="text-danger"></span>
+        <br />
+        <br />
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayName("Edit")
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.ProductName)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Quantity)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.UnitPrice)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.TotalAmount)
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="tbod">
+               
+            </tbody>
+
+
+        </table>
+        <div class="calculation">
+            <div class="form-size">
+                <label asp-for="SubTotal" class="control-label"></label>
+                <input asp-for="SubTotal" value="" id="SubTotal" class="form-control" readonly />
+                <span asp-validation-for="SubTotal" class="text-danger"></span>
+            </div>
+            <div class="form-size">
+                <label asp-for="Discount" class="control-label"></label>
+                <input asp-for="Discount" id="Discount" class="form-control" />
+                <span asp-validation-for="Discount" class="text-danger"></span>
+            </div>
+            <div class="form-size">
+                <label asp-for="ShippingFee" class="control-label"></label>
+                <input asp-for="ShippingFee" id="ShippingFee" class="form-control" />
+                <span asp-validation-for="ShippingFee" class="text-danger"></span>
+            </div>
+            <div class="form-size">
+                <label asp-for="NetAmount" class="control-label"></label>
+                <input asp-for="NetAmount" id="NetTotal" class="form-control" readonly />
+                <span asp-validation-for="NetAmount" class="text-danger"></span>
+            </div>
+            <div class="form-adjust">
+                <label class="control-label">Status</label><span class="mandatory"></span>
+                @Html.DropDownList("StatusId", (IEnumerable<SelectListItem>)ViewBag.StatusId, "--Select--", new { @class = "form-select", required = "required" })
+                <span asp-validation-for="StatusId" class="text-danger"></span>
+            </div>
+            <div class="form-adjust">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
         </div>
-      </div><br />
-    <h5><b>Order Items</b></h5>
-    <br />
-    
-      <div class="package">
-        <div class="form-group">
-            <label class="control-label">Products</label><span class="mandatory"></span>
-            @Html.DropDownList("ProductId", (IEnumerable<SelectListItem>)ViewBag.ProductId, "--Select--", new { @id = "ProductId", @class = "form-select", required = "required" })
-            <span asp-validation-for="ProductId" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="Quantity" class="control-label"></label>
-            <input asp-for="Quantity" class="form-control" />
-            <span asp-validation-for="Quantity" class="text-danger"></span>
-        </div>
-        <div class="form-group">
-            <label asp-for="UnitPrice" class="control-label"></label>
-            <input asp-for="UnitPrice" id="UnitPrice" class="form-control" />
-            <span asp-validation-for="UnitPrice" class="text-danger"></span>
-        </div>
-        <div class="form-button"><br />
-            <a asp-controller="OrderTab" asp-action="Create"  class="btn btn-primary h-60"><i class="fa-solid fa-plus"></i>Add Item</a>
-        </div>
- </div><br /><br />
- <table class="table">
+    </form>
    
-        <thead>
-            <tr>
-                <th>
-                    @Html.DisplayName("Edit")
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.ProductId)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.Quantity)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.UnitPrice)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.TotalAmount)
-                </th>
-            </tr>
-        </thead>
-       
-  @* @foreach (var item in ViewBag.OrderTabVM) {
-        <tr>
-        <td>
-        <a asp-controller="OrderTab" asp-action="Update" asp-route-id="@item.Id"  method="get" class="btn btn-outline-primary"><i class="fa fa-folder" aria-hidden="true"></i>
+    <script>
+        $(document).ready(function () {
+            function calculateTotalAmount() {
+                var quantity = parseInt($('#Quantity').val()) || 0;
+                var unitprice = parseFloat($('#UnitPrice').val()) || 0;
+                var totalAmount = quantity * unitprice;
+                $('#SubTotal').val(totalAmount.toFixed(2));
+                $('#totalAmount').val(totalAmount.toFixed(2));
+                calculateNetAmount();
+            }
 
-        </a>
-        </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Product.Id)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Quantity)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.UnitPrice)
-                </td>
-                 <td>
-                    @Html.DisplayFor(modelItem => item.SubTotal)
-                </td>
-                 <td>
-          </tr>  *@ 
+            function calculateNetAmount() {
+                var subtotal = parseFloat($('#SubTotal').val()) || 0;
+                var discount = parseFloat($('#Discount').val()) || 0;
+                var shippingFee = parseFloat($('#ShippingFee').val()) || 0;
 
-    </table>
-     <div class="calculation">
-        <div class="form-size">
-            <label asp-for="SubTotal" class="control-label"></label>
-            <input asp-for="SubTotal" class="form-control" readonly />
-            <span asp-validation-for="SubTotal" class="text-danger"></span>
-        </div>
-        <div class="form-size">
-            <label asp-for="Discount" class="control-label"></label>
-            <input asp-for="Discount" class="form-control"  />
-            <span asp-validation-for="Discount" class="text-danger"></span>
-        </div>
-        <div class="form-size">
-            <label asp-for="ShippingFee" class="control-label"></label>
-            <input asp-for="ShippingFee" class="form-control" />
-            <span asp-validation-for="ShippingFee" class="text-danger"></span>
-        </div>
-        <div class="form-size">
-            <label asp-for="NetAmount" class="control-label"></label>
-            <input asp-for="NetAmount" class="form-control" readonly />
-            <span asp-validation-for="NetAmount" class="text-danger"></span>
-        </div>
-     <div class="form-adjust">
-        <label class="control-label">Status</label><span class="mandatory"></span>
-        @Html.DropDownList("StatusId", (IEnumerable<SelectListItem>)ViewBag.StatusId, "--Select--", new { @class = "form-select",required = "required" })
-        <span asp-validation-for="StatusId" class="text-danger"></span>
-    </div>
-    <div class="form-adjust">
-        <input type="submit" value="Save" class="btn btn-primary" />
-    </div>
-    </div>
+                var discountAmount = (discount / 100) * subtotal;
+                var netAmount = subtotal - discountAmount + shippingFee;
+
+                $('#NetTotal').val(netAmount.toFixed(2));
+            }
+
+            $('#Quantity, #UnitPrice').on('input', function () {
+                calculateTotalAmount();
+            });
+
+            $('#SubTotal, #Discount, #ShippingFee').on('input', function () {
+                calculateNetAmount();
+            });
+
+            $('#ProductId').change(function () {
+                getProductByUnitPrice()
+            });
+            $('#addItemButton').click(function () {
+                var newItem = {
+                    ProductId: $('#ProductId').val(),
+                    ProductName: $('#ProductId option:selected').text(),
+                    Quantity: $('#Quantity').val(),
+                    UnitPrice: $('#UnitPrice').val(),
+                    TotalAmount: (parseInt($('#Quantity').val()) || 0) * (parseFloat($('#UnitPrice').val()) || 0)
+                };
+                
+                $.ajax({
+                    data: newItem,
+                    method: "POST",
+                    //contentType: "application/json",
+                    url: "@Url.Action("AddItem", "OrderTab")",
+                    success: function (response) {
+                        $("#tbod").empty();
+                        // $("#TotalAmount").val();
+                        // $("#SubTotal").val();
+                        var subtotal = 0;
+                        
+                        $.each(response, function (index, item) {
+                            result = "<tr><td><button type='button' class='btn btn-default btn-xs' onclick='AddProduct(&quot;" + item.productId + "&quot;,&quot;0&quot;,&quot;0&quot;,&quot;0&quot;,&quot;2&quot;);' title='Delete'><i class='bx bx-trash'></i></button></td>" +
+                                "<td>" + item.productName + "</td>" +
+                                "<td>" + item.quantity + "</td>" +
+                                "<td>" + item.unitPrice.toFixed(2) + "</td>" +
+                                "<td>" + item.totalAmount.toFixed(2) + "</td></tr>";
+                            $("#tbod").append(result);
+                            subtotal = subtotal + item.totalAmount;
+                        });
+                        $("#SubTotal").val(subtotal);
+                    },
+                    failure: function (response) {
+                        alert(response.Error);
+                    },
+                    error: function (response) {
+                        alert(response.Error);
+                    }
+                });
+            });
+            // $('#addItemButton').click(function () {
+                
+            //     var newItem = {
+            //         ProductId: $('#ProductId').val(),
+            //         ProductName: $('#ProductId option:selected').text(),
+            //         Quantity: $('#Quantity').val(),
+            //         UnitPrice: $('#UnitPrice').val(),
+            //         TotalAmount: (parseInt($('#Quantity').val()) || 0) * (parseFloat($('#UnitPrice').val()) || 0)
+            //     };
+
+            //     $.ajax({
+            //         data: newItem,
+            //         method: "POST",
+            //         url: "@Url.Action("AddItem", "OrderTab")",
+            //         success: function (response) {
+            //             $("#tbod").empty();
+            //             var subtotal = 0;
+            //             $.each(response, function (index, item) {
+            //                 var row = '<tr>' +
+            //                     '<td>' + item.productName + '</td>' + // Use ProductName here
+            //                     '<td>' + item.quantity + '</td>' +
+            //                     '<td>' + item.unitPrice + '</td>' +
+            //                     '<td>' + item.totalAmount + '</td>' +
+            //                     '</tr>';
+            //                 $("#tbod").append(row);
+            //                 subtotal += item.totalAmount;
+            //             });
+            //             $("#SubTotal").val(subtotal.toFixed(2));
+            //             calculateNetAmount();
+            //         },
+            //         error: function (response) {
+            //             alert('Error adding item.');
+            //         }
+            //     });
+            // });
+
+
+
+            function getProductByUnitPrice() {
+                var selectedValue = $("#ProductId").val();
+                $.ajax({
+                    url: '@Url.Action("getProductByUnitPrice", "OrderTab")',
+                    type: 'GET',
+                    data: {
+                        ProductId: selectedValue,
+                    },
+                    success: function (data) {
+
+                        $('#UnitPrice').val(data[0].unitPrice)
+
+                    }
+                });
+            }
+
+        });
+    </script>
 
 </body>
 </html>

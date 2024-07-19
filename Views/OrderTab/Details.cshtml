@@ -1,0 +1,65 @@
+﻿@model R2h_Erp_App.Models.OrdertabVM
+
+<Center>
+    <h2><b>Details</b></h2>
+</Center>
+
+<div class="heading">
+    <h5><b>Purchase Order</b></h5>
+    <a asp-controller="OrderTab" asp-action="List" class="btn btn-primary h-50"><i class="fa fa-address-card" aria-hidden="true"></i></a>
+</div>
+<br />
+<div class="container">
+
+    <div class="form-group">
+        <label asp-for="OrderNumber" class="control-label"></label>
+        <input asp-for="OrderNumber" class="form-control" />
+        <span asp-validation-for="OrderNumber" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        @Html.DisplayName("CustomerName")
+        <select class="form-select" asp-for="CustomerId" id="CustomerId" disabled>
+            <option value="0">-------Select-------</option>
+            @foreach (var category in ViewBag.CustomerId.Items)
+            {
+                <option value="@category.CustomerId">@category.Name</option>
+            }
+        </select>
+    </div>
+    <div class="form-group">
+        <label asp-for="OrderDate" class="control-label"></label>
+        <input asp-for="OrderDate" id="orderDate" value="@DateTime.Now" class="form-control" />
+        <span asp-validation-for="OrderDate" class="text-danger"></span>
+    </div>
+</div>
+<br />
+<h5><b>Order Items</b></h5>
+<br />
+<div class="calculation">
+    <div class="form-size">
+        <label asp-for="SubTotal" class="control-label"></label>
+        <input asp-for="SubTotal" value="" id="SubTotal" class="form-control" readonly />
+        <span asp-validation-for="SubTotal" class="text-danger"></span>
+    </div>
+    <div class="form-size">
+        <label asp-for="Discount" class="control-label"></label>
+        <input asp-for="Discount" id="Discount" class="form-control" />
+        <span asp-validation-for="Discount" class="text-danger"></span>
+    </div>
+    <div class="form-size">
+        <label asp-for="ShippingFee" class="control-label"></label>
+        <input asp-for="ShippingFee" id="ShippingFee" class="form-control" />
+        <span asp-validation-for="ShippingFee" class="text-danger"></span>
+    </div>
+    <div class="form-size">
+        <label asp-for="NetAmount" class="control-label"></label>
+        <input asp-for="NetAmount" id="NetAmount" class="form-control" readonly />
+        <span asp-validation-for="NetAmount" class="text-danger"></span>
+    </div>
+    <div class="form-adjust">
+        <label class="control-label">Status</label><span class="mandatory"></span>
+        @Html.DropDownList("StatusId", (IEnumerable<SelectListItem>)ViewBag.StatusId, "--Select--", new { @class = "form-select", required = "required" })
+        <span asp-validation-for="StatusId" class="text-danger"></span>
+    </div>
+ 
+</div>

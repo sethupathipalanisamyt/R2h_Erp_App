@@ -8,11 +8,13 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using R2h_Erp_App.DbModels;
 using R2h_Erp_App.Models;
+using System.Security.Cryptography;
 
 namespace R2h_Erp_App.Controllers
 {
     public class OrderTabController : Controller
     {
+        OrderItemTab OIT=new OrderItemTab();
         private readonly R2hErpDbContext _context;
 
         public OrderTabController(R2hErpDbContext context)
@@ -30,8 +32,14 @@ namespace R2h_Erp_App.Controllers
             ViewBag.StatusId = new SelectList(find, "StatusId", "StatusName");
             return View();
 
-            return View();
+          
 
+        }
+        [HttpGet]
+        public IActionResult List()
+        {
+            var show = _context.OrderTabs.Include(o => o.Customer).Include(p => p.Status).ToList();
+            return View("List", show);
         }
 
         // GET: OrderTabController/Details/5
@@ -62,6 +70,7 @@ namespace R2h_Erp_App.Controllers
             var find = _context.StatusTabs.ToList();
             OrderTab order = new OrderTab();
 
+
             if (oredertabvm != null)
             {
                 order.OrderNumber = oredertabvm.OrderNumber;
@@ -72,14 +81,22 @@ namespace R2h_Erp_App.Controllers
                 order.ShippingFee = oredertabvm.ShippingFee;
                 order.NetAmount = oredertabvm.NetAmount;
                 order.StatusId = oredertabvm.StatusId;
+                //OIT.OrderId = order.OrderId;
+                //OIT.ProductId = oredertabvm.ProductId;
+                //OIT.Quantity = oredertabvm.Quantity;
+                //OIT.UnitPrice = oredertabvm.UnitPrice;
+                //OIT.TotalAmount= OIT.Quantity * OIT.UnitPrice;
                 _context.Add(order);
-                _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Create));
+                //_context.Add(OIT);
+                _context.SaveChanges();
+                return RedirectToAction(nameof(List));
 
             }
+            HttpContext.Session.SetString("OrderTab",JsonConvert.SerializeObject(order));
             ViewBag.CustomersId = new SelectList(result, "CustomersId", "Name");
             ViewBag.ProductId = new SelectList(respose, "ProductsId", "Name");
             ViewBag.StatusId = new SelectList(find, "StatusId", "StatusName");
+            
             return View(oredertabvm);
         }
         //public async Task<IActionResult> AddProduct(OrdertabVM vm)
@@ -156,11 +173,60 @@ namespace R2h_Erp_App.Controllers
             var details = (_context.Products.Where(option => option.ProductsId == ProductId));
             return Json(details);
         }
+       
+        [HttpPost]
+        [HttpPost]
+        public JsonResult AddItem(OrdertabVM newItem)
+        {
+            var itemsJson = HttpContext.Session.GetString("order");
+            var items = itemsJson != null ? JsonConvert.DeserializeObject<List<OrdertabVM>>(itemsJson) : new List<OrdertabVM>();
+            var product = _context.Products.Find(newItem.ProductId);
+            if (product != null)
+            {
+                newItem.ProductName = product.Name; // Set the ProductName
+                items.Add(newItem);
+                HttpContext.Session.SetString("order", JsonConvert.SerializeObject(items));
+            }
+            return Json(items);
+        }
+        [HttpGet]
+        public ActionResult PopupContent(OrdertabVM ordertab)
+        {
+            return View("Details", ordertab);
+        }
 
         // GET: OrderTabController/Edit/5
-        public ActionResult Edit(int id)
+        [HttpGet]
+        public async Task<IActionResult> Edit(int? id)
         {
-            return View();
+            var result = _context.Customers.ToList().Where(p => !p.Isdeleted == true).Where(o => !o.IsActive == false);
+            var respose = _context.Products.ToList().Where(p => !p.Isdeleted == true).Where(o => !o.IsActive == false);
+            var find = _context.StatusTabs.ToList();
+            OrdertabVM orderTVM=new OrdertabVM();
+            if (id == null)
+            {
+                return View(List);
+            }
+            var order = await _context.OrderTabs.FindAsync(id);
+            if (order==null)
+            {
+                return View(List);
+            }
+            orderTVM.OrderNumber = order.OrderNumber;
+            orderTVM.CustomerId = order.CustomerId;
+            orderTVM.OrderDate = order.OrderDate;
+            orderTVM.SubTotal = order.SubTotal;
+            orderTVM.Discount = order.Discount;
+            orderTVM.ShippingFee = order.ShippingFee;
+            orderTVM.NetAmount = order.NetAmount;
+            orderTVM.StatusId = order.StatusId;
+            
+            ViewBag.CustomersId = new SelectList(result, "CustomersId", "Name");
+            ViewBag.ProductId = new SelectList(respose, "ProductsId", "Name");
+            ViewBag.StatusId = new SelectList(find, "StatusId", "StatusName");
+            var itemsJson = HttpContext.Session.GetString("order");
+            var items = itemsJson != null ? JsonConvert.DeserializeObject<List<OrdertabVM>>(itemsJson) : new List<OrdertabVM>();
+            return View("Index", orderTVM);
         }
 
         // POST: OrderTabController/Edit/5
@@ -179,9 +245,20 @@ namespace R2h_Erp_App.Controllers
         }
 
         // GET: OrderTabController/Delete/5
-        public ActionResult Delete(int id)
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var Order = await _context.OrderTabs .FirstOrDefaultAsync(m => m.OrderId == id);
+            if (Order == null)
+            {
+                return NotFound();
+            }
+            return View("Details", Order);
         }
 
         // POST: OrderTabController/Delete/5

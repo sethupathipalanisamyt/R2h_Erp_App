@@ -17,6 +17,8 @@ public partial class OrderItemTab
 
     public decimal TotalAmount { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual OrderTab Order { get; set; } = null!;
 
     public virtual Product Product { get; set; } = null!;

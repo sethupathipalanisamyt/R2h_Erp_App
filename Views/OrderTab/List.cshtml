@@ -1,0 +1,87 @@
+﻿@model IEnumerable<R2h_Erp_App.DbModels.OrderTab>
+
+@{
+    ViewData["Title"] = "List";
+}
+
+<h1>Order List</h1>
+
+<p>
+    <a asp-controller="OrderTab" asp-action="Index" class="btn btn-primary h-50"><i class="fa-solid fa-plus"></i> Create Order</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            
+            <th>
+                @Html.DisplayName("Edit")
+            </th>
+            <th>
+                @Html.DisplayName("Customer Name")
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OrderNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OrderDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NetAmount)
+            </th>
+            <th>
+                @Html.DisplayName("Status")
+            </th>
+            <th>
+                @Html.DisplayName("Detials ")
+            </th>
+            <th>@Html.DisplayName("Delete ")</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <a asp-controller="OrderTab" asp-action="Edit" asp-route-id="@item.OrderId" method="get" class="btn btn-outline-primary"><i class="fa-solid fa-pen-to-square"></i></a>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Customer.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OrderNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OrderDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NetAmount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Status.StatusName)
+                </td>
+                <td>
+                    <button id="popup">Details</button>                    
+                <td>
+                    <a asp-controller="OrderTab" asp-action="Delete" method="GET" asp-route-id="@item.OrderId" method="get" class="btn btn-outline-primary mr-2"><i class="fa-solid fa-trash-can"></i></a>
+                </td>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div id="popupContainer" style="display:none;">
+    <iframe id="popupIframe" style="width:100%; height:500px; border:none;"></iframe>
+</div>
+<script>
+    document.getElementById("#popup").addEventListener("click", function () {
+        var iframe = document.getElementById("#popupIframe");
+        iframe.src = '@Url.Action("PopupContent", "OrderTab")';
+        document.getElementById("#popupContainer").style.display = "block";
+    });
+</script>
+
+         
+        }
+    </tbody>
+</table>
