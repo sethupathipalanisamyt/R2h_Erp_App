@@ -22,6 +22,7 @@ public partial class OrderTab
     public decimal? NetAmount { get; set; }
 
     public int? StatusId { get; set; }
+    public bool? IsDeleted { get; set; }
 
     public virtual Customer Customer { get; set; } = null!;
 

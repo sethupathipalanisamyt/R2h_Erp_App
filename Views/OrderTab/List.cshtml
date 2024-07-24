@@ -7,15 +7,13 @@
 <h1>Order List</h1>
 
 <p>
-    <a asp-controller="OrderTab" asp-action="Index" class="btn btn-primary h-50"><i class="fa-solid fa-plus"></i> Create Order</a>
+    <a asp-controller="OrderTab" asp-action="Create" class="btn btn-primary h-50">
+        <i class="fas fa-plus"></i> Create Order
+    </a>
 </p>
 <table class="table">
     <thead>
         <tr>
-            
-            <th>
-                @Html.DisplayName("Edit")
-            </th>
             <th>
                 @Html.DisplayName("Customer Name")
             </th>
@@ -31,10 +29,7 @@
             <th>
                 @Html.DisplayName("Status")
             </th>
-            <th>
-                @Html.DisplayName("Detials ")
-            </th>
-            <th>@Html.DisplayName("Delete ")</th>
+            <th></th>
             <th></th>
         </tr>
     </thead>
@@ -42,9 +37,6 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>
-                    <a asp-controller="OrderTab" asp-action="Edit" asp-route-id="@item.OrderId" method="get" class="btn btn-outline-primary"><i class="fa-solid fa-pen-to-square"></i></a>
-                </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Customer.Name)
                 </td>
@@ -61,27 +53,182 @@
                     @Html.DisplayFor(modelItem => item.Status.StatusName)
                 </td>
                 <td>
-                    <button id="popup">Details</button>                    
-                <td>
-                    <a asp-controller="OrderTab" asp-action="Delete" method="GET" asp-route-id="@item.OrderId" method="get" class="btn btn-outline-primary mr-2"><i class="fa-solid fa-trash-can"></i></a>
-                </td>
+                    <a asp-action="Create" asp-route-id="@item.OrderId" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-edit"></i>
+                    </a> |
+                    <a href="#" class="details-link btn btn-outline-info btn-sm" data-id="@item.OrderId">
+                        <i class="fas fa-info-circle"></i>
+                    </a> |
+                    <a href="#" class="delete-link btn btn-outline-danger btn-sm" data-id="@item.OrderId">
+                        <i class="fas fa-trash"></i>
+                    </a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-<div id="popupContainer" style="display:none;">
-    <iframe id="popupIframe" style="width:100%; height:500px; border:none;"></iframe>
-</div>
-<script>
-    document.getElementById("#popup").addEventListener("click", function () {
-        var iframe = document.getElementById("#popupIframe");
-        iframe.src = '@Url.Action("PopupContent", "OrderTab")';
-        document.getElementById("#popupContainer").style.display = "block";
-    });
-</script>
 
-         
-        }
-    </tbody>
-</table>
+<!-- Details Modal structure -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                <a type="button" class="close" asp-controller="OrderTab" asp-action="List" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </a>
+            </div>
+            <div class="modal-body">
+                <!-- Order details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal structure -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Delete</h5>
+                <a type="button" class="close" asp-controller="OrderTab" asp-action="List" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </a>
+            </div>
+            <div class="modal-body">
+                <!-- Custom message will be shown here -->
+                <p>Are you sure you want to delete this order?</p>
+                <!-- Order details for confirmation will be loaded here -->
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.details-link').click(function (event) {
+                event.preventDefault();
+                var orderId = $(this).data('id');
+
+                $.ajax({
+                    url: '/OrderTab/Details/' + orderId,
+                    type: 'GET',
+                    success: function (data) {
+                        var modalBody = $('#orderDetailsModal .modal-body');
+                        modalBody.empty();
+                        modalBody.append('<p><strong>Order Number:</strong> ' + data.orderNumber + '</p>');
+                        modalBody.append('<p><strong>Customer Name:</strong> ' + data.customerName + '</p>');
+                        modalBody.append('<p><strong>Order Date:</strong> ' + new Date(data.orderDate).toLocaleDateString() + '</p>');
+                        modalBody.append('<p><strong>Subtotal:</strong> ' + data.subTotal + '</p>');
+                        modalBody.append('<p><strong>Discount:</strong> ' + data.discount + '</p>');
+                        modalBody.append('<p><strong>Shipping Fee:</strong> ' + data.shippingFee + '</p>');
+                        modalBody.append('<p><strong>Net Amount:</strong> ' + data.netAmount + '</p>');
+                        modalBody.append('<p><strong>Status:</strong> ' + data.statusName + '</p>');
+                        modalBody.append('<hr>');
+                        modalBody.append('<h5>Order Items</h5>');
+                        var orderItemsTable = '<table class="table"><thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead><tbody>';
+                        $.each(data.orderItems, function (index, item) {
+                            orderItemsTable += '<tr><td>' + item.productName + '</td><td>' + item.quantity + '</td><td>' + item.unitPrice + '</td><td>' + item.totalAmount + '</td></tr>';
+                        });
+                        orderItemsTable += '</tbody></table>';
+                        modalBody.append(orderItemsTable);
+                        $('#orderDetailsModal').modal('show');
+                    },
+                    error: function () {
+                        alert('Error loading order details.');
+                    }
+                });
+            });
+
+            $('.delete-link').click(function (event) {
+                event.preventDefault();
+                var orderId = $(this).data('id');
+
+                $.ajax({
+                    url: '/OrderTab/Details/' + orderId,
+                    type: 'GET',
+                    success: function (data) {
+                        var modalBody = $('#deleteConfirmationModal .modal-body');
+                        modalBody.empty();
+                        modalBody.append('<p>Are you sure you want to delete this order?</p>');
+                        modalBody.append('<p><strong>Order Number:</strong> ' + data.orderNumber + '</p>');
+                        modalBody.append('<p><strong>Customer Name:</strong> ' + data.customerName + '</p>');
+                        modalBody.append('<p><strong>Order Date:</strong> ' + new Date(data.orderDate).toLocaleDateString() + '</p>');
+                        modalBody.append('<p><strong>Subtotal:</strong> ' + data.subTotal + '</p>');
+                        modalBody.append('<p><strong>Discount:</strong> ' + data.discount + '</p>');
+                        modalBody.append('<p><strong>Shipping Fee:</strong> ' + data.shippingFee + '</p>');
+                        modalBody.append('<p><strong>Net Amount:</strong> ' + data.netAmount + '</p>');
+                        modalBody.append('<p><strong>Status:</strong> ' + data.statusName + '</p>');
+                        modalBody.append('<hr>');
+                        modalBody.append('<h5>Order Items</h5>');
+                        var orderItemsTable = '<table class="table"><thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead><tbody>';
+                        $.each(data.orderItems, function (index, item) {
+                            orderItemsTable += '<tr><td>' + item.productName + '</td><td>' + item.quantity + '</td><td>' + item.unitPrice + '</td><td>' + item.totalAmount + '</td></tr>';
+                        });
+                        orderItemsTable += '</tbody></table>';
+                        modalBody.append(orderItemsTable);
+                        $('#deleteConfirmationModal').modal('show');
+                        $('#confirmDeleteBtn').data('id', orderId);
+                    },
+                    error: function () {
+                        alert('Error loading order details.');
+                    }
+                });
+            });
+
+            $('#confirmDeleteBtn').click(function () {
+                var orderId = $(this).data('id');
+
+                $.ajax({
+                    url: '/OrderTab/Delete/' + orderId,
+                    type: 'POST',
+                    success: function () {
+                        $('#deleteConfirmationModal').modal('hide');
+                        location.reload();
+                    },
+                    error: function () {
+                        alert('Error deleting order.');
+                    }
+                });
+            });
+        });
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Select all elements with the class 'delete-link'
+            const deleteLinks = document.querySelectorAll('.delete-link');
+
+            // Add click event listener to each delete link
+            deleteLinks.forEach(function (link) {
+                link.addEventListener('click', function (event) {
+                    // Prevent the default action (following the href)
+                    event.preventDefault();
+
+                    // Show the confirmation dialog
+                    const userConfirmed = confirm('Are you sure you want to delete?');
+
+                    // If the user confirms, proceed with the deletion
+                    if (userConfirmed) {
+                        // For example, you can submit a form or navigate to the link's href
+                        // This part depends on your actual deletion logic
+                        console.log('User confirmed deletion for item with ID:', link.dataset.id);
+                        // window.location.href = link.href; // Uncomment to navigate to the link's href
+                    }
+                });
+            });
+        });
+
+
+    </script>
+}

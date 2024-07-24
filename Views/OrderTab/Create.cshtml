@@ -1,40 +1,27 @@
-﻿@model R2h_Erp_App.Models.OrdertabVM
-
+﻿@model R2h_Erp_App.Models.OrdertabVM;
 @{
     ViewData["Title"] = "Create";
-
 }
-<a asp-controller="OrderTab" asp-action="List" id="ShowallTag" class="btn btn-success">Showall</a>
-
 <html lang="en">
 <head>
-    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 30px;
+            background-color: #f0f8ff;
         }
 
         .table {
             border-style: groove;
         }
 
-        #ShowallTag {
-            display: flex;
-            justify-content:center;
-        }
-
         .container, .package {
             display: flex;
             justify-content: space-evenly;
         }
-
 
         .calculation {
             display: inline-block;
@@ -51,6 +38,11 @@
             justify-content: space-between;
             display: block;
         }
+        #showall{
+            width:100%;
+            align-content:center;
+            flex-direction:row;
+        }
 
         .container.form-group, .package.form-group {
             display: inline-block;
@@ -58,38 +50,37 @@
             justify-items: space-between;
         }
     </style>
-
 </head>
 <body>
     <form asp-action="Create" method="post">
-        <h5><b>Purchase Order</b></h5>
+        <input type="hidden" asp-for="OrderId" />
+        <a asp-controller="OrderTab" asp-action="List" id="Showall" class="btn btn-success "> Show all</a>
+        <h5><b>@ViewData["Title"] Order</b></h5>
         <br />
         <div class="container">
-
             <div class="form-group">
                 <label asp-for="OrderNumber" class="control-label"></label>
-                <input asp-for="OrderNumber" class="form-control" />
+                <input asp-for="OrderNumber" id="OrderNumber" class="form-control" required />
                 <span asp-validation-for="OrderNumber" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label class="control-label">Customer</label><span class="mandatory"></span>
-                @Html.DropDownList("CustomerId", (IEnumerable<SelectListItem>)ViewBag.CustomersId, "--Select--", new { @class = "form-select", required = "required" })
+                @Html.DropDownList("CustomersId", (IEnumerable<SelectListItem>)ViewBag.CustomersId, "--Select--", new { @class = "form-select", required = "required" })
                 <span asp-validation-for="CustomerId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="OrderDate" class="control-label"></label>
-                <input asp-for="OrderDate" id="orderDate" value="@DateTime.Now" class="form-control" />
+                <input asp-for="OrderDate" id="orderDate" class="form-control" />
                 <span asp-validation-for="OrderDate" class="text-danger"></span>
             </div>
         </div>
         <br />
         <h5><b>Order Items</b></h5>
         <br />
-
         <div class="package">
             <div class="form-group">
                 <label class="control-label">Products</label><span class="mandatory"></span>
-                @Html.DropDownList("ProductId", (IEnumerable<SelectListItem>)ViewBag.ProductId, "--Select--", new { @id = "ProductId", @class = "form-select", required = "required" })
+                @Html.DropDownList("ProductId", (IEnumerable<SelectListItem>)ViewBag.ProductId, "--Select--", new { @id = "ProductId", @class = "form-select" })
                 <span asp-validation-for="ProductId" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -102,38 +93,33 @@
                 <input asp-for="UnitPrice" id="UnitPrice" class="form-control" readonly />
                 <span asp-validation-for="UnitPrice" class="text-danger"></span>
             </div>
-            <div class="form-button"><br />
-                <button id="addItemButton" class="btn btn-primary h-60"><i class="fa-solid fa-plus"></i>Add Item</button>
+            <div class="form-button">
+                <br />
+                <button id="addItemButton" type="button" class="btn btn-primary h-60"><i class="fa-solid fa-plus"></i> Add Item</button>
             </div>
         </div>
         <br />
         <br />
         <table class="table">
-
             <thead>
                 <tr>
                     <th>
-                        @Html.DisplayName("Edit")
-                    </th>
-                    <th>
                         @Html.DisplayNameFor(model => model.ProductName)
-                    </th>
+                        </th>
                     <th>
                         @Html.DisplayNameFor(model => model.Quantity)
-                    </th>
+                        </th>
                     <th>
                         @Html.DisplayNameFor(model => model.UnitPrice)
-                    </th>
+                        </th>
                     <th>
                         @Html.DisplayNameFor(model => model.TotalAmount)
-                    </th>
+                        </th>
                 </tr>
             </thead>
-            <tbody id="tbod">
-               
+            <tbody id="tpro">
+
             </tbody>
-
-
         </table>
         <div class="calculation">
             <div class="form-size">
@@ -166,15 +152,15 @@
             </div>
         </div>
     </form>
-   
+
     <script>
+   
         $(document).ready(function () {
             function calculateTotalAmount() {
                 var quantity = parseInt($('#Quantity').val()) || 0;
-                var unitprice = parseFloat($('#UnitPrice').val()) || 0;
-                var totalAmount = quantity * unitprice;
+                var unitPrice = parseFloat($('#UnitPrice').val()) || 0;
+                var totalAmount = quantity * unitPrice;
                 $('#SubTotal').val(totalAmount.toFixed(2));
-                $('#totalAmount').val(totalAmount.toFixed(2));
                 calculateNetAmount();
             }
 
@@ -198,9 +184,27 @@
             });
 
             $('#ProductId').change(function () {
-                getProductByUnitPrice()
+                calculateAmount();
             });
-            $('#addItemButton').click(function () {
+
+            function calculateAmount() {
+                var productId = $('#ProductId').val();
+                $.ajax({
+                    url: '/OrderTab/GetUnitPrice',
+                    type: 'GET',
+                    data: { productId: productId },
+                    success: function (data) {
+                        var unitPrice = parseFloat(data);
+                        $('#UnitPrice').val(unitPrice.toFixed(2));
+                    },
+                    error: function () {
+                        alert('Error fetching unit price.');
+                    }
+                });
+            }
+
+            $('#addItemButton').click(function (event) {
+                event.preventDefault();
                 var newItem = {
                     ProductId: $('#ProductId').val(),
                     ProductName: $('#ProductId option:selected').text(),
@@ -208,93 +212,51 @@
                     UnitPrice: $('#UnitPrice').val(),
                     TotalAmount: (parseInt($('#Quantity').val()) || 0) * (parseFloat($('#UnitPrice').val()) || 0)
                 };
-                
+
                 $.ajax({
                     data: newItem,
                     method: "POST",
-                    //contentType: "application/json",
-                    url: "@Url.Action("AddItem", "OrderTab")",
+                    url: '@Url.Action("AddItem", "OrderTab")',
                     success: function (response) {
-                        $("#tbod").empty();
-                        // $("#TotalAmount").val();
-                        // $("#SubTotal").val();
+                        $("#tpro").empty();
                         var subtotal = 0;
-                        
                         $.each(response, function (index, item) {
-                            result = "<tr><td><button type='button' class='btn btn-default btn-xs' onclick='AddProduct(&quot;" + item.productId + "&quot;,&quot;0&quot;,&quot;0&quot;,&quot;0&quot;,&quot;2&quot;);' title='Delete'><i class='bx bx-trash'></i></button></td>" +
-                                "<td>" + item.productName + "</td>" +
-                                "<td>" + item.quantity + "</td>" +
-                                "<td>" + item.unitPrice.toFixed(2) + "</td>" +
-                                "<td>" + item.totalAmount.toFixed(2) + "</td></tr>";
-                            $("#tbod").append(result);
-                            subtotal = subtotal + item.totalAmount;
+                            var row = '<tr>' +
+                                '<td>' + item.productName + '</td>' +
+                                '<td>' + item.quantity + '</td>' +
+                                '<td>' + item.unitPrice + '</td>' +
+                                '<td>' + item.totalAmount + '</td>' +
+                                '</tr>';
+                            $("#tpro").append(row);
+                            subtotal += item.totalAmount;
                         });
-                        $("#SubTotal").val(subtotal);
-                    },
-                    failure: function (response) {
-                        alert(response.Error);
+                        $("#SubTotal").val(subtotal.toFixed(2));
+                        calculateNetAmount();
                     },
                     error: function (response) {
-                        alert(response.Error);
+                        alert('Error adding item.');
                     }
                 });
             });
-            // $('#addItemButton').click(function () {
-                
-            //     var newItem = {
-            //         ProductId: $('#ProductId').val(),
-            //         ProductName: $('#ProductId option:selected').text(),
-            //         Quantity: $('#Quantity').val(),
-            //         UnitPrice: $('#UnitPrice').val(),
-            //         TotalAmount: (parseInt($('#Quantity').val()) || 0) * (parseFloat($('#UnitPrice').val()) || 0)
-            //     };
 
-            //     $.ajax({
-            //         data: newItem,
-            //         method: "POST",
-            //         url: "@Url.Action("AddItem", "OrderTab")",
-            //         success: function (response) {
-            //             $("#tbod").empty();
-            //             var subtotal = 0;
-            //             $.each(response, function (index, item) {
-            //                 var row = '<tr>' +
-            //                     '<td>' + item.productName + '</td>' + // Use ProductName here
-            //                     '<td>' + item.quantity + '</td>' +
-            //                     '<td>' + item.unitPrice + '</td>' +
-            //                     '<td>' + item.totalAmount + '</td>' +
-            //                     '</tr>';
-            //                 $("#tbod").append(row);
-            //                 subtotal += item.totalAmount;
-            //             });
-            //             $("#SubTotal").val(subtotal.toFixed(2));
-            //             calculateNetAmount();
-            //         },
-            //         error: function (response) {
-            //             alert('Error adding item.');
-            //         }
-            //     });
-            // });
-
-
-
-            function getProductByUnitPrice() {
-                var selectedValue = $("#ProductId").val();
-                $.ajax({
-                    url: '@Url.Action("getProductByUnitPrice", "OrderTab")',
-                    type: 'GET',
-                    data: {
-                        ProductId: selectedValue,
-                    },
-                    success: function (data) {
-
-                        $('#UnitPrice').val(data[0].unitPrice)
-
-                    }
+            // Load existing order items if available
+            var existingOrderItems = @Html.Raw(ViewBag.OrderItems ?? "[]");
+            existingOrderItems = existingOrderItems.length ? existingOrderItems : [];
+            if (existingOrderItems.length > 0) {
+                $.each(existingOrderItems, function (index, item) {
+                    var row = '<tr>' +
+                        '<td>' + item.ProductName + '</td>' +
+                        '<td>' + item.Quantity + '</td>' +
+                        '<td>' + item.UnitPrice + '</td>' +
+                        '<td>' + item.TotalAmount + '</td>' +
+                        '</tr>';
+                    $("#tpro").append(row);
                 });
+                $("#SubTotal").val(existingOrderItems.reduce(function (acc, item) { return acc + item.TotalAmount; }, 0).toFixed(2));
+                calculateNetAmount();
             }
 
         });
     </script>
-
 </body>
 </html>
