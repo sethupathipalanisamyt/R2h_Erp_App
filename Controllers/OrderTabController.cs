@@ -83,7 +83,7 @@ namespace R2h_Erp_App.Controllers
         [HttpGet]
         public async Task<ActionResult> Create(int id)
         {
-            HttpContext.Session.Remove("order");
+            HttpContext.Session.Remove("Order");
             var result = _context.Customers.Where(p => !p.Isdeleted && p.IsActive).ToList();
             var response = _context.Products.Where(p => !p.Isdeleted && p.IsActive).ToList();
             var find = _context.StatusTabs.ToList();
@@ -117,7 +117,7 @@ namespace R2h_Erp_App.Controllers
                 OrderId = order.OrderId,
                 OrderNumber = order.OrderNumber,
                 CustomerId = order.CustomerId,
-                OrderDate = order.OrderDate,
+                OrderDate = DateTime.Now,
                 SubTotal = order.SubTotal,
                 Discount = order.Discount,
                 ShippingFee = order.ShippingFee,
@@ -147,12 +147,12 @@ namespace R2h_Erp_App.Controllers
           
             if (ordervm.OrderId == 0)
             {
-                var existingOrder = await _context.OrderTabs
-            .FirstOrDefaultAsync(o => o.OrderNumber == ordervm.OrderNumber && !o.IsDeleted==false);
+                var existingOrder = await _context.OrderTabs.FirstOrDefaultAsync(o => o.OrderNumber == ordervm.OrderNumber && !o.IsDeleted==true);
                 if (existingOrder != null)
                 {
                     ModelState.AddModelError("OrderNumber", "Order number already exists.");
-                    return RedirectToAction(nameof(List));
+                    return Json(new { success = false, message = " Order number already exists." });
+
                 }
 
                 OrderTab order = new OrderTab
@@ -174,7 +174,7 @@ namespace R2h_Erp_App.Controllers
                 _context.OrderTabs.Add(order);
 
                 await _context.SaveChangesAsync();
-                var OIsession = HttpContext.Session.GetString("order");
+                var OIsession = HttpContext.Session.GetString("Order");
                 var orderItem = JsonConvert.DeserializeObject<List<OrderItemTab>>(OIsession);
                 if (orderItem != null)
                 {
@@ -185,7 +185,7 @@ namespace R2h_Erp_App.Controllers
                     }
                     await _context.SaveChangesAsync();
                 }
-                HttpContext.Session.Remove("order");
+                HttpContext.Session.Remove("Order");
                 return RedirectToAction(nameof(List));
 
             }
@@ -237,7 +237,7 @@ namespace R2h_Erp_App.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                HttpContext.Session.Remove("order");
+                HttpContext.Session.Remove("Order");
                 return RedirectToAction(nameof(List));
             }
 
@@ -286,35 +286,6 @@ namespace R2h_Erp_App.Controllers
 
             return Json(new { success = true, items });
         }
-
-        //[HttpPost]
-        //public IActionResult AddItem(OrdertabVM newItem)
-        //{
-        //    var items = GetOrderItemsFromSession();
-        //    var product = _context.Products.Find(newItem.ProductId);
-
-        //    if (product != null)
-        //    {
-        //        newItem.ProductName = product.Name;
-
-        //        // Checking if the product already exists in session or not
-        //        var existingItem = items.FirstOrDefault(x => x.ProductId == newItem.ProductId);
-        //        if (existingItem != null)
-        //        {
-        //            existingItem.Quantity += newItem.Quantity;
-        //            existingItem.TotalAmount += newItem.TotalAmount;
-
-        //        }
-        //        else
-        //        {
-        //            items.Add(newItem);
-        //        }
-
-        //        SaveOrderItemsToSession(items);
-        //    }
-
-        //    return Json(items);
-        //}
         [HttpPost]
         public JsonResult DeleteItem(int productId)
         {
@@ -329,10 +300,6 @@ namespace R2h_Erp_App.Controllers
 
             return Json(new { success = true, items });
         }
-
-
-
-
         // POST: OrderTabController/Delete/5
         [HttpPost]
         public async Task<IActionResult> Delete(int id)

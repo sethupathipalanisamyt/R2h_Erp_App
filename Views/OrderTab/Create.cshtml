@@ -26,7 +26,7 @@
 
         .calculation {
             display: inline-block;
-            align-items: right;
+            
             float: inline-end;
         }
 
@@ -38,13 +38,12 @@
         .form-adjust {
             justify-content: space-between;
             display: block;
+        }   
+        #addItemButton:hover{
+            background-color:forestgreen;
+            
         }
 
-        #Discountlabel{
-            width:100%;
-            justify-content: space-between;
-            display: block;
-        }
         #showall{
             width:100%;
             align-content:center;
@@ -54,33 +53,58 @@
         .container.form-group, .package.form-group {
             display: inline-block;
             align-items: center;
-            justify-items: space-between;
+           
         }
     </style>
 </head>
 <body>
-    <form asp-action="Create" method="post">
+    <form asp-action="Create" method="post" >
         <input type="hidden" asp-for="OrderId" />
-        <a asp-controller="OrderTab" asp-action="List" id="Showall" class="btn btn-success "> Show all</a>
+        <a asp-controller="OrderTab" asp-action="List" id="Showall" class="d-grid gap-2 col-6 mx-auto btn btn-success "> Show all</a>
         <h5><b>@ViewData["Title"] Order</b></h5>
         <br />
         <div class="container">
-            <div class="form-group">
-                <label asp-for="OrderNumber" class="control-label"></label>
-                <input asp-for="OrderNumber" id="OrderNumber" class="form-control" required />
-                <span asp-validation-for="OrderNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label class="control-label">Customer</label><span class="mandatory"></span>
-                @Html.DropDownList("CustomerId", (IEnumerable<SelectListItem>)ViewBag.CustomersId, "--Select--", new { @id = "CustomerId", @class = "form-select", required = "required" })
-                <span asp-validation-for="CustomerId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="OrderDate" class="control-label"></label>
-                <input asp-for="OrderDate" id="orderDate" class="form-control" required />
-                <span asp-validation-for="OrderDate" class="text-danger"></span>
-            </div>
+            @if (Model.OrderId == 0)
+            {
+                <div class="form-group">
+                    <label asp-for="OrderNumber" class="control-label"></label>
+                    <input asp-for="OrderNumber" class="form-control" required />
+                    <span asp-validation-for="OrderNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Customer</label><span class="mandatory"></span>
+                    @Html.DropDownList("CustomerId", (IEnumerable<SelectListItem>)ViewBag.CustomersId, "--Select--", new { @class = "form-select", required = "required" })
+                    <span asp-validation-for="CustomerId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="OrderDate" class="control-label"></label>
+                    <input asp-for="OrderDate" id="orderDate" class="form-control" />
+                    <span asp-validation-for="OrderDate" class="text-danger"></span>
+                </div>
+            }
+            else
+            {
+                <div class="form-group">
+                    <label asp-for="OrderNumber" class="control-label"></label>
+                    <input asp-for="OrderNumber" class="form-control" required readonly />
+                    <span asp-validation-for="OrderNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Customer</label><span class="mandatory"></span>
+                    @Html.DropDownList("CustomerId", (IEnumerable<SelectListItem>)ViewBag.CustomersId, "--Select--", new { @class = "form-select", required = "required", disabled = "disabled" })
+                    <input type="hidden" asp-for="CustomerId" />
+                    <span asp-validation-for="CustomerId" class="text-danger"></span>
+                </div>
+
+
+                <div class="form-group">
+                    <label asp-for="OrderDate" class="control-label"></label>
+                    <input asp-for="OrderDate" id="orderDate" class="form-control" readonly />
+                    <span asp-validation-for="OrderDate" class="text-danger"></span>
+                </div>
+            }
         </div>
+   
         <br />
         <h5><b>Order Items</b></h5>
         <br />
@@ -155,7 +179,7 @@
                 <span asp-validation-for="StatusId" class="text-danger"></span>
             </div>
             <div class="form-adjust">
-                <button type="submit" value="Save"  class="btn btn-primary" />
+                <button type="submit" class="d-grid gap-2 col-4 mx-auto btn btn-success">Save</button>
             </div>
         </div>
     </form>
@@ -283,7 +307,7 @@
                         '<td>' + item.UnitPrice.toFixed(2) + '</td>' +
                         '<td>' + item.TotalAmount.toFixed(2) + '</td>' +
                         '<td>' +
-                        '<button type="button" class="btn btn-sm btn-primary editItem" data-product-id="' + item.ProductId + '">Edit</button>' +
+                        '<button type="button" class="btn btn-sm btn-primary editItem" data-product-id="' + item.ProductId + '">Edit</button>' + 
                         '<button type="button" class="btn btn-sm btn-danger deleteItem" data-product-id="' + item.ProductId + '">Delete</button>' +
                         '</td>' +
                         '</tr>';
