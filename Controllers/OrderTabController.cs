@@ -30,20 +30,6 @@ namespace R2h_Erp_App.Controllers
             return View("List", show);
         }
 
-        //public async Task<IActionResult> Index()
-        //{
-        //    var result = _context.Customers.ToList().Where(p => !p.Isdeleted == true).Where(o => !o.IsActive == false);
-        //    var response = _context.Products.ToList().Where(p => !p.Isdeleted == true).Where(o => !o.IsActive == false);
-        //    var find = _context.StatusTabs.ToList();
-
-        //    ViewBag.CustomersId = new SelectList(result, "CustomersId", "Name");
-        //    ViewBag.ProductId = new SelectList(response, "ProductsId", "Name");
-        //    ViewBag.StatusId = new SelectList(find, "StatusId", "StatusName");
-        //    return View("Create");
-            
-
-        //}
-
         public async Task<IActionResult> Details(int id)
         {
             var order = await _context.OrderTabs.Include(o => o.Customer).Include(o => o.Status).Where(o => !o.IsDeleted== true).FirstOrDefaultAsync(o => o.OrderId == id);
@@ -80,19 +66,24 @@ namespace R2h_Erp_App.Controllers
         }
         private List<OrdertabVM> GetOrderItemsFromSession()
         {
-            var itemsJson = HttpContext.Session.GetString("order");
-            return itemsJson != null ? JsonConvert.DeserializeObject<List<OrdertabVM>>(itemsJson) : new List<OrdertabVM>();
+            var items = HttpContext.Session.GetString("Order");
+            if (items != null)
+            {
+                return JsonConvert.DeserializeObject<List<OrdertabVM>>(items);
+            }
+            return new List<OrdertabVM>();
         }
 
         private void SaveOrderItemsToSession(List<OrdertabVM> items)
         {
-            HttpContext.Session.SetString("order", JsonConvert.SerializeObject(items));
+            HttpContext.Session.SetString("Order", JsonConvert.SerializeObject(items));
         }
 
         // GET: OrderTabController/Create
         [HttpGet]
         public async Task<ActionResult> Create(int id)
         {
+            HttpContext.Session.Remove("order");
             var result = _context.Customers.Where(p => !p.Isdeleted && p.IsActive).ToList();
             var response = _context.Products.Where(p => !p.Isdeleted && p.IsActive).ToList();
             var find = _context.StatusTabs.ToList();
@@ -142,8 +133,9 @@ namespace R2h_Erp_App.Controllers
             return View(viewModel);
         }
 
-        // POST: OrderTabController/Create
+  
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(OrdertabVM ordervm)
         {
             var customers = _context.Customers.Where(p => !p.Isdeleted && p.IsActive).ToList();
@@ -152,23 +144,38 @@ namespace R2h_Erp_App.Controllers
             ViewBag.CustomersId = new SelectList(customers, "CustomersId", "Name");
             ViewBag.ProductId = new SelectList(products, "ProductsId", "Name");
             ViewBag.StatusId = new SelectList(statuses, "StatusId", "StatusName");
-
+          
             if (ordervm.OrderId == 0)
             {
-                OrderTab order = new OrderTab();
-                order.OrderNumber = ordervm.OrderNumber;
-                order.CustomerId = ordervm.CustomerId;
-                order.OrderDate = ordervm.OrderDate;
-                order.SubTotal = ordervm.SubTotal;
-                order.Discount = ordervm.Discount;
-                order.ShippingFee = ordervm.ShippingFee;
-                order.NetAmount = ordervm.NetAmount;
-                order.StatusId = ordervm.StatusId;
+                var existingOrder = await _context.OrderTabs
+            .FirstOrDefaultAsync(o => o.OrderNumber == ordervm.OrderNumber && !o.IsDeleted==false);
+                if (existingOrder != null)
+                {
+                    ModelState.AddModelError("OrderNumber", "Order number already exists.");
+                    return RedirectToAction(nameof(List));
+                }
 
+                OrderTab order = new OrderTab
+                {
+                    OrderNumber = ordervm.OrderNumber,
+                    CustomerId = ordervm.CustomerId,
+                    OrderDate = ordervm.OrderDate,
+                    SubTotal = ordervm.SubTotal,
+                    Discount = ordervm.Discount,
+                    ShippingFee = ordervm.ShippingFee,
+                    NetAmount = ordervm.NetAmount,
+                    StatusId = ordervm.StatusId,
+                    IsDeleted = false
+
+                };
+                //var productname = _context.Products.Where(p => p.ProductsId == ordervm.ProductId);
+                //OrderItemTab OIT = new OrderItemTab();
+               
                 _context.OrderTabs.Add(order);
-                await _context.SaveChangesAsync();
 
-                var orderItem = JsonConvert.DeserializeObject<List<OrderItemTab>>(HttpContext.Session.GetString("order"));
+                await _context.SaveChangesAsync();
+                var OIsession = HttpContext.Session.GetString("order");
+                var orderItem = JsonConvert.DeserializeObject<List<OrderItemTab>>(OIsession);
                 if (orderItem != null)
                 {
                     foreach (var item in orderItem)
@@ -180,7 +187,9 @@ namespace R2h_Erp_App.Controllers
                 }
                 HttpContext.Session.Remove("order");
                 return RedirectToAction(nameof(List));
+
             }
+
             else
             {
                 var order = await _context.OrderTabs.Include(o => o.OrderItemTabs).FirstOrDefaultAsync(o => o.OrderId == ordervm.OrderId);
@@ -198,6 +207,7 @@ namespace R2h_Erp_App.Controllers
                 order.ShippingFee = ordervm.ShippingFee;
                 order.NetAmount = ordervm.NetAmount;
                 order.StatusId = ordervm.StatusId;
+                order.IsDeleted = false;
 
                 _context.Update(order);
 
@@ -210,7 +220,7 @@ namespace R2h_Erp_App.Controllers
                         orderItem.Quantity = item.Quantity;
                         orderItem.UnitPrice = item.UnitPrice;
                         orderItem.TotalAmount = item.TotalAmount;
-                        _context.Update(orderItem);
+                        _context.OrderItemTabs.Update(orderItem);
                     }
                     else
                     {
@@ -230,6 +240,8 @@ namespace R2h_Erp_App.Controllers
                 HttpContext.Session.Remove("order");
                 return RedirectToAction(nameof(List));
             }
+
+
         }
 
         [HttpGet]
@@ -242,21 +254,81 @@ namespace R2h_Erp_App.Controllers
             }
             return Ok(product.UnitPrice);
         }
-
         [HttpPost]
         public JsonResult AddItem(OrdertabVM newItem)
         {
             var items = GetOrderItemsFromSession();
-            var product = _context.Products.Find(newItem.ProductId);
-            if (product != null)
+
+            // Check for valid quantity
+            if (newItem.Quantity <= 0)
             {
-                newItem.ProductName = product.Name;
-                items.Add(newItem);
-                SaveOrderItemsToSession(items);
+                return Json(new { success = false, message = "Invalid quantity." });
             }
-            return Json(items);
+
+            // Check for duplicate product entry
+            var existingItem = items.FirstOrDefault(i => i.ProductId == newItem.ProductId);
+            if (existingItem != null)
+            {
+                existingItem.Quantity += newItem.Quantity;
+                existingItem.TotalAmount = existingItem.Quantity * existingItem.UnitPrice;
+            }
+            else
+            {
+                var product = _context.Products.Find(newItem.ProductId);
+                if (product != null)
+                {
+                    newItem.ProductName = product.Name;
+                    items.Add(newItem);
+                }
+            }
+
+            SaveOrderItemsToSession(items);
+
+            return Json(new { success = true, items });
         }
 
+        //[HttpPost]
+        //public IActionResult AddItem(OrdertabVM newItem)
+        //{
+        //    var items = GetOrderItemsFromSession();
+        //    var product = _context.Products.Find(newItem.ProductId);
+
+        //    if (product != null)
+        //    {
+        //        newItem.ProductName = product.Name;
+
+        //        // Checking if the product already exists in session or not
+        //        var existingItem = items.FirstOrDefault(x => x.ProductId == newItem.ProductId);
+        //        if (existingItem != null)
+        //        {
+        //            existingItem.Quantity += newItem.Quantity;
+        //            existingItem.TotalAmount += newItem.TotalAmount;
+
+        //        }
+        //        else
+        //        {
+        //            items.Add(newItem);
+        //        }
+
+        //        SaveOrderItemsToSession(items);
+        //    }
+
+        //    return Json(items);
+        //}
+        [HttpPost]
+        public JsonResult DeleteItem(int productId)
+        {
+            var items = GetOrderItemsFromSession();
+
+            var itemToRemove = items.FirstOrDefault(i => i.ProductId == productId);
+            if (itemToRemove != null)
+            {
+                items.Remove(itemToRemove);
+                SaveOrderItemsToSession(items);
+            }
+
+            return Json(new { success = true, items });
+        }
 
 
 
@@ -282,7 +354,7 @@ namespace R2h_Erp_App.Controllers
             }
 
             await _context.SaveChangesAsync();
-            return View(List);
+            return RedirectToAction(nameof(List));
         }
 
     }

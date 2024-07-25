@@ -53,15 +53,16 @@
                     @Html.DisplayFor(modelItem => item.Status.StatusName)
                 </td>
                 <td>
-                    <a asp-action="Create" asp-route-id="@item.OrderId" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-edit"></i>
-                    </a> |
-                    <a href="#" class="details-link btn btn-outline-info btn-sm" data-id="@item.OrderId">
-                        <i class="fas fa-info-circle"></i>
-                    </a> |
-                    <a href="#" class="delete-link btn btn-outline-danger btn-sm" data-id="@item.OrderId">
-                        <i class="fas fa-trash"></i>
-                    </a>
+                    @if (item.Status.StatusName != "Confirmed")
+                    {
+                        <a asp-controller="OrderTab" asp-action="Create" asp-route-id="@item.OrderId" class="btn btn-outline-primary mr-2"><i class="fa fa-pencil-square" aria-hidden="true"></i></a>
+                        <a href="#" class="details-link btn btn-outline-info btn-sm" data-id="@item.OrderId"><i class="fa fa-info-circle" aria-hidden="true"></i></a>
+                        <a href="#" class="delete-link btn btn-outline-danger btn-sm" data-id="@item.OrderId"><i class="fas fa-trash"></i></a>
+                    }
+                    else
+                    {
+                        <a href="#" class="details-link btn btn-outline-info btn-sm" data-id="@item.OrderId"><i class="fa fa-info-circle" aria-hidden="true"></i></a>
+                    }
                 </td>
             </tr>
         }
@@ -191,7 +192,7 @@
                 var orderId = $(this).data('id');
 
                 $.ajax({
-                    url: '/OrderTab/Delete/' + orderId,
+                    url: '/OrderTab/Delete/' + orderId, 
                     type: 'POST',
                     success: function () {
                         $('#deleteConfirmationModal').modal('hide');

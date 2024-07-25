@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 namespace R2h_Erp_App.Models
 {
     public class OrdertabVM
@@ -12,6 +13,7 @@ namespace R2h_Erp_App.Models
         [Required]
         public decimal? SubTotal { get; set; }
         [Required]
+        [DisplayName("Discount($-Rs)")]
         public decimal? Discount { get; set; }
         [Required]
         public decimal? ShippingFee { get; set; }
