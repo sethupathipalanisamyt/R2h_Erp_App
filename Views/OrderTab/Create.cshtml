@@ -58,7 +58,7 @@
     </style>
 </head>
 <body>
-    <form asp-action="Create" method="post" >
+    <form id="orderForm" asp-action="Create" method="post">
         <input type="hidden" asp-for="OrderId" />
         <a asp-controller="OrderTab" asp-action="List" id="Showall" class="d-grid gap-2 col-6 mx-auto btn btn-success "> Show all</a>
         <h5><b>@ViewData["Title"] Order</b></h5>
@@ -68,8 +68,8 @@
             {
                 <div class="form-group">
                     <label asp-for="OrderNumber" class="control-label"></label>
-                    <input asp-for="OrderNumber" class="form-control" required />
-                    <span asp-validation-for="OrderNumber" class="text-danger"></span>
+                    <input asp-for="OrderNumber" id="OrderNumber" class="form-control" required />
+                    <span asp-validation-for="OrderNumber" id="orderNumberError" class="text-danger"></span>
                 </div>
                 <div class="form-group">
                     <label class="control-label">Customer</label><span class="mandatory"></span>
@@ -86,7 +86,7 @@
             {
                 <div class="form-group">
                     <label asp-for="OrderNumber" class="control-label"></label>
-                    <input asp-for="OrderNumber" class="form-control" required readonly />
+                    <input asp-for="OrderNumber" id="OrderNumber" class="form-control" required readonly />
                     <span asp-validation-for="OrderNumber" class="text-danger"></span>
                 </div>
                 <div class="form-group">
@@ -183,25 +183,40 @@
             </div>
         </div>
     </form>
-
-
     <script>
         $(document).ready(function () {
-            function calculateTotalAmount() {
-                var quantity = parseInt($('#Quantity').val()) || 0;
-                var unitPrice = parseFloat($('#UnitPrice').val()) || 0;
-                var totalAmount = quantity * unitPrice;
-                $('#SubTotal').val(totalAmount.toFixed(2));
-                calculateNetAmount();
-            }
+            $('#OrderNumber').on('input', function () {
+                var orderNumber = $(this).val();
+                if (orderNumber) {
+                    $.ajax({
+                        url: '@Url.Action("IsOrderNumberAvailable", "OrderTab")',
+                        type: 'POST',
+                        data: { orderNumber: orderNumber },
+                        success: function (response) {
+                            if (!response) {
+                                $('#orderNumberError').text('Order number already exists.');
+                            } else {
+                                $('#orderNumberError').text('');
+                            }
+                        },
+                        error: function () {
+                            $('#orderNumberError').text('Error checking order number.');
+                        }
+                    });
+                } else {
+                    $('#orderNumberError').text('');
+                }
+            });
+
+            let editingItem = null;
 
             function calculateNetAmount() {
                 var subtotal = parseFloat($('#SubTotal').val()) || 0;
                 var discount = parseFloat($('#Discount').val()) || 0;
                 var shippingFee = parseFloat($('#ShippingFee').val()) || 0;
 
-
-                var netAmount = subtotal - discount + shippingFee;
+                var discountAmount = discount ;
+                var netAmount = subtotal - discountAmount + shippingFee;
 
                 $('#NetTotal').val(netAmount.toFixed(2));
             }
@@ -215,7 +230,6 @@
                     success: function (data) {
                         var unitPrice = parseFloat(data);
                         $('#UnitPrice').val(unitPrice.toFixed(2));
-                        calculateTotalAmount();
                     },
                     error: function () {
                         alert('Error fetching unit price.');
@@ -227,30 +241,24 @@
                 var subtotal = 0;
                 $("#tpro").empty();
                 $.each(response.items, function (index, item) {
-                    var row = '<tr>' +
-                        '<td>' + item.productName + '</td>' +
-                        '<td>' + item.quantity + '</td>' +
-                        '<td>' + item.unitPrice.toFixed(2) + '</td>' +
-                        '<td>' + item.totalAmount.toFixed(2) + '</td>' +
-                        '<td>' +
-                        '<button type="button" class="btn btn-sm btn-primary editItem" data-product-id="' + item.productId + '">Edit</button>' +
-                        '<button type="button" class="btn btn-sm btn-danger deleteItem" data-product-id="' + item.productId + '">Delete</button>' +
-                        '</td>' +
-                        '</tr>';
-                    $("#tpro").append(row);
-                    subtotal += item.totalAmount;
+                    if (!item.isDeleted) {
+                        var row = '<tr>' +
+                            '<td>' + item.productName + '</td>' +
+                            '<td>' + item.quantity + '</td>' +
+                            '<td>' + item.unitPrice.toFixed(2) + '</td>' +
+                            '<td>' + item.totalAmount.toFixed(2) + '</td>' +
+                            '<td>' +
+                            '<button type="button" class="btn btn-sm btn-primary editItem" data-product-id="' + item.productId + '">Edit</button>' +
+                            '<button type="button" class="btn btn-sm btn-danger deleteItem" data-product-id="' + item.productId + '">Delete</button>' +
+                            '</td>' +
+                            '</tr>';
+                        $("#tpro").append(row);
+                        subtotal += item.totalAmount;
+                    }
                 });
                 $("#SubTotal").val(subtotal.toFixed(2));
                 calculateNetAmount();
             }
-
-            $('#Quantity, #UnitPrice').on('input', function () {
-                calculateTotalAmount();
-            });
-
-            $('#SubTotal, #Discount, #ShippingFee').on('input', function () {
-                calculateNetAmount();
-            });
 
             $('#ProductId').change(function () {
                 calculateAmount();
@@ -274,29 +282,82 @@
                     TotalAmount: quantity * (parseFloat($('#UnitPrice').val()) || 0)
                 };
 
-                $.ajax({
-                    data: newItem,
-                    method: "POST",
-                    url: '@Url.Action("AddItem", "OrderTab")',
-                    success: function (response) {
-                        if (response.success) {
-                            updateTable(response);
-                            $('#ProductId').val('');
-                            $('#Quantity').val(0);
-                            $('#UnitPrice').val(0.00);
-                            $('#addItemButton').text('Add Item');
-                        } else {
-                            alert(response.message);
+                if (editingItem !== null) {
+                    newItem.ProductId = editingItem;
+                    $.ajax({
+                        data: newItem,
+                        method: "POST",
+                        url: '@Url.Action("UpdateItem", "OrderTab")',
+                        success: function (response) {
+                            if (response.success) {
+                                updateTable(response);
+                                resetForm();
+                            } else {
+                                alert(response.message);
+                            }
+                        },
+                        error: function () {
+                            alert('Error updating item.');
                         }
-                    },
-                    error: function () {
-                        alert('Error adding item.');
+                    });
+                } else {
+                    var existingRow = $("#tpro tr").filter(function () {
+                        return $(this).find('.editItem').data('product-id') == newItem.ProductId;
+                    });
+
+                    if (existingRow.length > 0) {
+                        var currentQuantity = parseInt(existingRow.find('td:eq(1)').text()) || 0;
+                        var newQuantity = currentQuantity + newItem.Quantity;
+                        var newTotalAmount = newQuantity * newItem.UnitPrice;
+
+                        newItem.Quantity = newQuantity;
+                        newItem.TotalAmount = newTotalAmount;
+
+                        $.ajax({
+                            data: newItem,
+                            method: "POST",
+                            url: '@Url.Action("UpdateItem", "OrderTab")',
+                            success: function (response) {
+                                if (response.success) {
+                                    updateTable(response);
+                                    resetForm();
+                                } else {
+                                    alert(response.message);
+                                }
+                            },
+                            error: function () {
+                                alert('Error updating item.');
+                            }
+                        });
+                    } else {
+                        $.ajax({
+                            data: newItem,
+                            method: "POST",
+                            url: '@Url.Action("AddItem", "OrderTab")',
+                            success: function (response) {
+                                if (response.success) {
+                                    updateTable(response);
+                                    resetForm();
+                                } else {
+                                    alert(response.message);
+                                }
+                            },
+                            error: function () {
+                                alert('Error adding item.');
+                            }
+                        });
                     }
-                });
+                }
             });
 
+            function resetForm() {
+                $('#ProductId').val('');
+                $('#Quantity').val(0);
+                $('#UnitPrice').val(0.00);
+                $('#addItemButton').text('Add Item');
+                editingItem = null;
+            }
 
-            // Load existing order items if available
             var existingOrderItems = @Html.Raw(ViewBag.OrderItems ?? "[]");
             if (existingOrderItems.length > 0) {
                 var subtotal = 0;
@@ -307,7 +368,7 @@
                         '<td>' + item.UnitPrice.toFixed(2) + '</td>' +
                         '<td>' + item.TotalAmount.toFixed(2) + '</td>' +
                         '<td>' +
-                        '<button type="button" class="btn btn-sm btn-primary editItem" data-product-id="' + item.ProductId + '">Edit</button>' + 
+                        '<button type="button" class="btn btn-sm btn-primary editItem" data-product-id="' + item.ProductId + '">Edit</button>' +
                         '<button type="button" class="btn btn-sm btn-danger deleteItem" data-product-id="' + item.ProductId + '">Delete</button>' +
                         '</td>' +
                         '</tr>';
@@ -329,6 +390,7 @@
                 $('#Quantity').val(quantity);
                 $('#UnitPrice').val(unitPrice);
                 $('#addItemButton').text('Update Item');
+                editingItem = productId;
             });
 
             $(document).on('click', '.deleteItem', function () {
@@ -350,7 +412,30 @@
                     }
                 });
             });
+
+            $('#orderForm').submit(function (event) {
+                var discount = $('#Discount').val();
+                var shippingFee = $('#ShippingFee').val();
+
+                if (!discount) {
+                    $('#Discount').val(0);
+                }
+                if (!shippingFee) {
+                    $('#ShippingFee').val(0);
+                }
+                if ($('#tpro tr').length === 0) {
+                    event.preventDefault();
+                    alert('Please add at least one order item.');
+                }
+            });
+
+            // Recalculate NetAmount when Discount or ShippingFee changes
+            $('#Discount, #ShippingFee').on('input', function () {
+                calculateNetAmount();
+            });
         });
-    </script>
+
+
+    </script> 
 </body>
 </html>

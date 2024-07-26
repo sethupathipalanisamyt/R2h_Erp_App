@@ -151,7 +151,7 @@ namespace R2h_Erp_App.Controllers
                 if (existingOrder != null)
                 {
                     ModelState.AddModelError("OrderNumber", "Order number already exists.");
-                    return Json(new { success = false, message = " Order number already exists." });
+                    return View(ordervm);
 
                 }
 
@@ -185,7 +185,7 @@ namespace R2h_Erp_App.Controllers
                     }
                     await _context.SaveChangesAsync();
                 }
-                HttpContext.Session.Remove("Order");
+                //HttpContext.Session.Remove("Order");
                 return RedirectToAction(nameof(List));
 
             }
@@ -220,6 +220,7 @@ namespace R2h_Erp_App.Controllers
                         orderItem.Quantity = item.Quantity;
                         orderItem.UnitPrice = item.UnitPrice;
                         orderItem.TotalAmount = item.TotalAmount;
+                        orderItem.IsDeleted = item.IsDeleted;
                         _context.OrderItemTabs.Update(orderItem);
                     }
                     else
@@ -230,7 +231,8 @@ namespace R2h_Erp_App.Controllers
                             ProductId = item.ProductId,
                             Quantity = item.Quantity,
                             UnitPrice = item.UnitPrice,
-                            TotalAmount = item.TotalAmount
+                            TotalAmount = item.TotalAmount,
+                            IsDeleted=item.IsDeleted
                         };
                         _context.OrderItemTabs.Add(orderItem);
                     }
@@ -287,15 +289,58 @@ namespace R2h_Erp_App.Controllers
             return Json(new { success = true, items });
         }
         [HttpPost]
-        public JsonResult DeleteItem(int productId)
+        public JsonResult UpdateItem(OrdertabVM newItem)
         {
             var items = GetOrderItemsFromSession();
 
-            var itemToRemove = items.FirstOrDefault(i => i.ProductId == productId);
+            // Find the existing item
+            var existingItem = items.FirstOrDefault(i => i.ProductId == newItem.ProductId);
+            if (existingItem != null)
+            {
+                // Update the existing item details
+                existingItem.ProductId = newItem.ProductId;
+                existingItem.ProductName = newItem.ProductName;
+                existingItem.Quantity = newItem.Quantity;
+                existingItem.UnitPrice = newItem.UnitPrice;
+                existingItem.TotalAmount = newItem.Quantity * newItem.UnitPrice;
+
+                // Save the updated items list back to session
+                SaveOrderItemsToSession(items);
+                return Json(new { success = true, items });
+            }
+
+            return Json(new { success = false, message = "Item not found." });
+        }
+        [HttpPost]
+        public JsonResult IsOrderNumberAvailable(string orderNumber)
+        {
+            bool isAvailable = !_context.OrderTabs.Any(o => o.OrderNumber == orderNumber);
+            return Json(isAvailable);
+        }
+    
+
+    
+        [HttpPost]
+        public JsonResult DeleteItem(int productId)
+        {
+            var items = GetOrderItemsFromSession();
+            //OrderItemTab oit = new OrderItemTab();
+            var existingItem = items.FirstOrDefault(i => i.ProductId == productId);
+            var itemToRemove = _context.OrderItemTabs.FirstOrDefault(i => i.ProductId == productId);
             if (itemToRemove != null)
             {
-                items.Remove(itemToRemove);
+                itemToRemove.IsDeleted = true;
+                //oit.OrderId = itemToRemove.OrderId;             
+                //oit.ProductId = itemToRemove.ProductId;
+                //oit.Quantity = itemToRemove.Quantity;
+                //oit.UnitPrice = itemToRemove.UnitPrice;
+                //oit.TotalAmount = itemToRemove.TotalAmount;
+                //oit.IsDeleted = true;
+                _context.OrderItemTabs.Remove(itemToRemove);
+                _context.SaveChangesAsync();
+                items.Remove(existingItem);
                 SaveOrderItemsToSession(items);
+             
             }
 
             return Json(new { success = true, items });
