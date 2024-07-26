@@ -330,12 +330,7 @@ namespace R2h_Erp_App.Controllers
             if (itemToRemove != null)
             {
                 itemToRemove.IsDeleted = true;
-                //oit.OrderId = itemToRemove.OrderId;             
-                //oit.ProductId = itemToRemove.ProductId;
-                //oit.Quantity = itemToRemove.Quantity;
-                //oit.UnitPrice = itemToRemove.UnitPrice;
-                //oit.TotalAmount = itemToRemove.TotalAmount;
-                //oit.IsDeleted = true;
+                
                 _context.OrderItemTabs.Remove(itemToRemove);
                 _context.SaveChangesAsync();
                 items.Remove(existingItem);
